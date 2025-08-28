@@ -25,6 +25,7 @@ class PlotDisplay(QStackedWidget):
         self.addWidget(standby_label)
 
         self._plots = QTabWidget()
+        self._plots.addTab(Plot1D(), "1D")
         self.addWidget(self._plots)
 
         self._parent.data_source_manager.new_data_received.connect(
@@ -41,8 +42,7 @@ class PlotDisplay(QStackedWidget):
             self.setCurrentIndex(0)
             return
 
-        self._plots.clear()
-        self._plots.addTab(Plot1D(), "1D")
+        self._plots.widget(0).clear()
 
         for uid, _ in new_uids_and_names:
             for detector_name in self._data_cache[uid]:
