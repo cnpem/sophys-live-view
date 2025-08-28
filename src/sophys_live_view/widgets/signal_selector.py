@@ -68,12 +68,14 @@ class SignalSelector(QWidget):
             self._signal_selection_table.setItem(index, 0, QTableWidgetItem(signal))
 
             x_axis_checkbox = QRadioButton()
+            x_axis_checkbox.setStyleSheet("margin-left:50%; margin-right:50%;")
             x_axis_checkbox.clicked.connect(partial(self._change_x_axis_signal, signal))
             self._signal_selection_table.setCellWidget(index, 1, x_axis_checkbox)
             if signal in previous_x_axis_signals:
                 x_axis_checkbox.setChecked(True)
 
             y_axis_checkbox = QCheckBox()
+            y_axis_checkbox.setStyleSheet("margin-left:50%; margin-right:50%;")
             y_axis_checkbox.toggled.connect(self._change_y_axis_signal)
             self._signal_selection_table.setCellWidget(index, 2, y_axis_checkbox)
             if signal in previous_y_axis_signals:
