@@ -92,18 +92,15 @@ class SignalSelector(QWidget):
     def _change_y_axis_signal(self):
         selected_signals = self._get_selected_y_axis_signals()
 
-        if selected_signals != self._old_y_axis_signals:
-            uids = set()
-            for signal in selected_signals | self._old_y_axis_signals:
-                uids |= self._uids_with_signal[signal]
+        uids = set()
+        for signal in selected_signals | self._old_y_axis_signals:
+            uids |= self._uids_with_signal[signal]
 
-            for uid in uids:
-                self._parent.plot_display.configure_1d_y_axis_names(
-                    uid, selected_signals
-                )
-            self._parent.plot_display.update_plots()
+        for uid in uids:
+            self._parent.plot_display.configure_1d_y_axis_names(uid, selected_signals)
+        self._parent.plot_display.update_plots()
 
-            self._old_y_axis_signals = selected_signals
+        self._old_y_axis_signals = selected_signals
 
     def _add_new_signal(
         self,
