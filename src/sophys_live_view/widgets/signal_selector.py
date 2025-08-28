@@ -31,6 +31,11 @@ class SignalSelector(QWidget):
         self._1d_signal_selection_table = SelectionTable1D(self)
         self._signal_selection_tab_widget.addTab(self._1d_signal_selection_table, "1D")
 
+        self._2d_signal_selection_table = SelectionTable2DScatter(self)
+        self._signal_selection_tab_widget.addTab(
+            self._2d_signal_selection_table, "2D - Scatter"
+        )
+
         self._parent.data_source_manager.new_data_stream.connect(self._add_new_signal)
 
     def change_current_streams(self, new_uids_and_names: list[tuple[str, str]]):
@@ -41,6 +46,7 @@ class SignalSelector(QWidget):
             new_uids.add(uid)
 
         self._1d_signal_selection_table.configure_signals(new_uids, new_signals)
+        self._2d_signal_selection_table.configure_signals(new_uids, new_signals)
 
     def _add_new_signal(
         self,
@@ -154,5 +160,109 @@ class SelectionTable1D(QTableWidget):
             else:
                 self.cellWidget(0, 2).setChecked(True)
                 selected_signals.add(self.item(0, 0).text())
+
+        return selected_signals
+
+
+class SelectionTable2DScatter(QTableWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self._parent = parent
+
+        self._old_x_axis_signals = set()
+        self._old_y_axis_signals = set()
+
+        self.insertColumn(0)
+        self.insertColumn(0)
+        self.insertColumn(0)
+        self.setHorizontalHeaderLabels(["Signal", "Independent", "Dependent"])
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.horizontalHeader().setSectionResizeMode(
+            2, QHeaderView.ResizeMode.ResizeToContents
+        )
+
+    def configure_signals(self, uids, signals):
+        self.setRowCount(0)
+
+        previous_x_axis_signals = self._old_x_axis_signals
+        previous_y_axis_signals = self._old_y_axis_signals
+
+        sorted_signals_list = sorted(signals)
+        for index, signal in enumerate(sorted_signals_list):
+            self.insertRow(index)
+            self.setItem(index, 0, QTableWidgetItem(signal))
+
+            x_axis_checkbox = QCheckBox()
+            x_axis_checkbox.setStyleSheet("margin-left:50%; margin-right:50%;")
+            x_axis_checkbox.toggled.connect(self._change_x_axis_signal)
+            self.setCellWidget(index, 1, x_axis_checkbox)
+
+            y_axis_checkbox = QCheckBox()
+            y_axis_checkbox.setStyleSheet("margin-left:50%; margin-right:50%;")
+            y_axis_checkbox.toggled.connect(self._change_y_axis_signal)
+            self.setCellWidget(index, 2, y_axis_checkbox)
+
+            if signal in previous_x_axis_signals:
+                x_axis_checkbox.setChecked(True)
+            self._change_x_axis_signal()
+            if signal in previous_y_axis_signals:
+                y_axis_checkbox.setChecked(True)
+            self._change_y_axis_signal()
+
+    def _change_x_axis_signal(self):
+        selected_signals = self._get_selected_x_axis_signals()
+
+        uids = set()
+        for signal in selected_signals | self._old_y_axis_signals:
+            uids |= self._parent.uids_with_signal[signal]
+
+        for uid in uids:
+            self._parent.plot_display.configure_2d_scatter_x_axis_names(
+                uid, selected_signals
+            )
+        self._parent.plot_display.update_plots()
+
+        self._old_x_axis_signals = selected_signals
+
+    def _change_y_axis_signal(self):
+        selected_signals = self._get_selected_y_axis_signals()
+
+        uids = set()
+        for signal in selected_signals | self._old_y_axis_signals:
+            uids |= self._parent.uids_with_signal[signal]
+
+        for uid in uids:
+            self._parent.plot_display.configure_2d_scatter_y_axis_names(
+                uid, selected_signals
+            )
+        self._parent.plot_display.update_plots()
+
+        self._old_y_axis_signals = selected_signals
+
+    def _get_selected_x_axis_signals(self):
+        selected_signals = set()
+        y_axis_indexes = []
+
+        for index in range(self.rowCount()):
+            if self.cellWidget(index, 1).isChecked():
+                selected_signals.add(self.item(index, 0).text())
+            if self.cellWidget(index, 2).isChecked():
+                y_axis_indexes.append(index)
+
+        return selected_signals
+
+    def _get_selected_y_axis_signals(self):
+        selected_signals = set()
+        x_axis_indexes = []
+
+        for index in range(self.rowCount()):
+            if self.cellWidget(index, 2).isChecked():
+                selected_signals.add(self.item(index, 0).text())
+            if self.cellWidget(index, 1).isChecked():
+                x_axis_indexes.append(index)
 
         return selected_signals
