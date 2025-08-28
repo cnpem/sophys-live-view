@@ -71,7 +71,10 @@ class BlueskyDataSource(DataSource, DocumentParser):
         self._descriptors[descriptor_uid] = start_uid
 
         self.new_data_stream.emit(
-            start_uid, self._run_metadata[start_uid]["name"], fields
+            start_uid,
+            self._run_metadata[start_uid]["name"],
+            fields,
+            self._run_metadata[start_uid]["metadata"],
         )
 
     def on_new_event(self, descriptor_uid: str, values: dict, timestamp: float):

@@ -45,6 +45,7 @@ class SophysLiveView(QMainWindow):
         plot_settings_widget.addTab(self.signal_selector, "Signals")
         plot_settings_widget.addTab(self.plot_configuration, "Configuration")
         controls_display_splitter.addWidget(plot_settings_widget)
+        controls_display_splitter.setSizes([1, 3])
 
         self.setCentralWidget(vertical_splitter)
 

@@ -101,7 +101,12 @@ class SignalSelector(QWidget):
         self._old_y_axis_signals = selected_signals
 
     def _add_new_signal(
-        self, uid: str, subuid: str, display_name: str, signals: set[str]
+        self,
+        uid: str,
+        subuid: str,
+        display_name: str,
+        signals: set[str],
+        metadata: dict,
     ):
         self._signals[subuid] = signals
 

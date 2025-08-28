@@ -30,8 +30,16 @@ class RunSelector(QWidget):
             current_uids.append((item.data(Qt.ItemDataRole.UserRole + 1), item.text()))
         self._parent.plot_display.change_current_streams(current_uids)
         self._parent.signal_selector.change_current_streams(current_uids)
+        self._parent.metadata_viewer.change_current_streams(current_uids)
 
-    def _add_stream(self, uid: str, subuid: str, display_name: str, signals: set[str]):
+    def _add_stream(
+        self,
+        uid: str,
+        subuid: str,
+        display_name: str,
+        signals: set[str],
+        metadata: dict,
+    ):
         item = QListWidgetItem()
         item.setText(display_name)
         item.setData(Qt.ItemDataRole.UserRole, uid)

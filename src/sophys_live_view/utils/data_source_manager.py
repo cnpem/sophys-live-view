@@ -12,7 +12,9 @@ class DataSourceManager(QThread):
     # and a SubUID, which allows for differentiation between datasets from the same DataSource.
     # The idea is that we keep track of both separately so that we can do stuff like filtering
     # on the UI based on DataSource, for example.
-    new_data_stream = Signal(str, str, str, set)  # uid, subuid, display_name, fields
+    new_data_stream = Signal(
+        str, str, str, set, dict
+    )  # uid, subuid, display_name, fields, metadata
     new_data_received = Signal(str, str, dict)  # uid, subuid, {signal : data}
 
     def __init__(self):
@@ -42,7 +44,9 @@ class DataSourceManager(QThread):
             data_source_uid = str(uuid.uuid4())
 
             uid = str(uuid.uuid4())
-            self.new_data_stream.emit(data_source_uid, uid, "abc", {"timestamp", "det"})
+            self.new_data_stream.emit(
+                data_source_uid, uid, "abc", {"timestamp", "det"}, {"uid": uid}
+            )
             self.new_data_received.emit(
                 data_source_uid,
                 uid,
@@ -55,7 +59,9 @@ class DataSourceManager(QThread):
             )
 
             uid = str(uuid.uuid4())
-            self.new_data_stream.emit(data_source_uid, uid, "def", {"timestamp", "det"})
+            self.new_data_stream.emit(
+                data_source_uid, uid, "def", {"timestamp", "det"}, {"uid": uid}
+            )
             self.new_data_received.emit(
                 data_source_uid,
                 uid,
@@ -69,7 +75,7 @@ class DataSourceManager(QThread):
 
             uid = str(uuid.uuid4())
             self.new_data_stream.emit(
-                data_source_uid, uid, "ghi", {"timestamp", "det", "det2"}
+                data_source_uid, uid, "ghi", {"timestamp", "det", "det2"}, {"uid": uid}
             )
             self.new_data_received.emit(
                 data_source_uid,
