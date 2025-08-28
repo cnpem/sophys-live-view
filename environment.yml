@@ -1,0 +1,15 @@
+name: sophys_live_view_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pyqt
+  - qtpy
+  - numpy
+  - setuptools_scm
+  - ruff
+  - pre-commit
+  - pytest
+  - pip:
+    - pydm
+    - git+https://gitlab.cnpem.br/SOL/GUI/suitscase.git

@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sophys_live_view"
+description = "Live data visualization interface"
+authors = [{ name = "Sofia Donato Ferreira" }]
+dependencies = [
+    "pyepics",
+    "qtpy",
+    "numpy",
+    "silx",
+]
+dynamic = ["version"]
+readme = "README.md"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["ui/*.ui", "_assets/*"]
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "dirty-tag"
+version_file = "src/sophys_live_view/__version__.py"
+
+[tool.ruff]
+exclude = ["__version__.py", "docs/*"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "N", "B", "UP"]
+ignore = ["E203", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]  # Ignore assert warnings in test files
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+combine-as-imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pytest",
+    "pytest-qt",
+    "faker",
+    "ruff",
+]
+all = [
+    "sophys_live_view[dev]"
+]
+
+[project.scripts]
+sophys_live_view = "sophys_live_view.main:entrypoint"
