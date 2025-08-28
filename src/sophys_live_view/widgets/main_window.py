@@ -11,7 +11,7 @@ from .signal_selector import SignalSelector
 
 
 class SophysLiveView(QMainWindow):
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, kafka_topic, kafka_bootstrap_servers, parent=None, **kwargs):
         super().__init__(parent, **kwargs)
 
         self.resize(1200, 800)
@@ -49,9 +49,7 @@ class SophysLiveView(QMainWindow):
 
         self.setCentralWidget(vertical_splitter)
 
-        kafka_data_source = KafkaDataSource(
-            "test_bluesky_raw_docs", ["localhost:60612"]
-        )
+        kafka_data_source = KafkaDataSource(kafka_topic, kafka_bootstrap_servers)
         self.data_source_manager.add_data_source(kafka_data_source)
 
         self.data_source_manager.start()
