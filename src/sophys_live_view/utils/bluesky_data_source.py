@@ -11,9 +11,9 @@ class DocumentParser(DocumentRouter):
     METADATA_KEYS = {"uid", "scan_id", "detectors", "motors"}
 
     def start(self, doc: RunStart):
-        display_name = str(
-            doc.get("metadata_save_file_identifier", doc.get("scan_id", "unknown"))
-        )
+        display_name = str(doc.get("metadata_save_file_identifier", "unknown"))
+        if display_name == "unknown":
+            display_name = "scan " + str(doc.get("scan_id", "unknown"))
         metadata = {key: doc[key] for key in self.METADATA_KEYS if key in doc}
 
         self.on_new_run_started(display_name, metadata)
