@@ -6,9 +6,9 @@ from qtpy.QtWidgets import (
     QCheckBox,
     QHeaderView,
     QRadioButton,
+    QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
-    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -31,21 +31,17 @@ class SignalSelector(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        self._signal_selection_tab_widget = QTabWidget()
-        layout.addWidget(self._signal_selection_tab_widget)
+        self._signal_selection_stack = QStackedWidget()
+        layout.addWidget(self._signal_selection_stack)
 
         self._1d_signal_selection_table = SelectionTable1D(self)
-        self._signal_selection_tab_widget.addTab(self._1d_signal_selection_table, "1D")
+        self._signal_selection_stack.addWidget(self._1d_signal_selection_table)
 
         self._2d_scatter_signal_selection_table = SelectionTable2DScatter(self)
-        self._signal_selection_tab_widget.addTab(
-            self._2d_scatter_signal_selection_table, "2D - Scatter"
-        )
+        self._signal_selection_stack.addWidget(self._2d_scatter_signal_selection_table)
 
         self._2d_grid_signal_selection_table = SelectionTable2DGrid(self)
-        self._signal_selection_tab_widget.addTab(
-            self._2d_grid_signal_selection_table, "2D - Grid"
-        )
+        self._signal_selection_stack.addWidget(self._2d_grid_signal_selection_table)
 
         self._parent.data_source_manager.new_data_stream.connect(self._add_new_signal)
         self.plot_display.plot_tab_changed.connect(self._change_tab)
@@ -99,10 +95,8 @@ class SignalSelector(QWidget):
             self.uids_with_signal[signal].add(subuid)
 
     def _change_tab(self, new_tab_name: str):
-        for index in range(self._signal_selection_tab_widget.count()):
-            if self._signal_selection_tab_widget.tabText(index) == new_tab_name:
-                self._signal_selection_tab_widget.setCurrentIndex(index)
-                break
+        name_to_index = {"1D": 0, "2D - Scatter": 1, "2D - Grid": 2}
+        self._signal_selection_stack.setCurrentIndex(name_to_index[new_tab_name])
 
     @property
     def plot_display(self):
