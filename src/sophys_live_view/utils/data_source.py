@@ -8,3 +8,4 @@ class DataSource(QThread):
     new_data_received = Signal(
         str, dict, dict
     )  # uid, {signal : data}, {signal : metadata}
+    go_to_last_automatically = Signal(bool)  # Whether to auto-update the display or not

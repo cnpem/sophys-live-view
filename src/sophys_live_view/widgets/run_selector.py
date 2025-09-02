@@ -11,6 +11,8 @@ class RunSelector(QWidget):
 
         self._parent = parent
 
+        self._go_to_last_automatically = True
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -19,6 +21,9 @@ class RunSelector(QWidget):
         layout.addWidget(self._run_list)
 
         self._parent.data_source_manager.new_data_stream.connect(self._add_stream)
+        self._parent.data_source_manager.go_to_last_automatically.connect(
+            self._set_go_to_last
+        )
         self._run_list.itemSelectionChanged.connect(self.change_current_streams)
         self._run_list.itemDoubleClicked.connect(self.toggle_bookmark)
 
@@ -55,7 +60,8 @@ class RunSelector(QWidget):
         item.setToolTip("Double-click to mark this item in the list.")
         self._run_list.addItem(item)
 
-        self.select_item.emit(item)
+        if self._go_to_last_automatically:
+            self.select_item.emit(item)
 
     @Slot(QListWidgetItem)
     def on_select_item(self, item: QListWidgetItem):
@@ -71,3 +77,7 @@ class RunSelector(QWidget):
         else:
             item.setData(Qt.ItemDataRole.DecorationRole, self.star_filled_icon)
             item.setData(Qt.ItemDataRole.UserRole + 2, True)
+
+    @Slot(str, bool)
+    def _set_go_to_last(self, uid: str, state: bool):
+        self._go_to_last_automatically = state

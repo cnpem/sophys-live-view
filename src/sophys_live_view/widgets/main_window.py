@@ -2,7 +2,6 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication, QMainWindow, QSplitter, QTabWidget
 
 from ..utils.data_source_manager import DataSourceManager
-from ..utils.kafka_data_source import KafkaDataSource
 from .metadata_viewer import MetadataViewer
 from .plot_configuration import PlotConfiguration
 from .plot_display import PlotDisplay
@@ -11,7 +10,7 @@ from .signal_selector import SignalSelector
 
 
 class SophysLiveView(QMainWindow):
-    def __init__(self, kafka_topic, kafka_bootstrap_servers, parent=None, **kwargs):
+    def __init__(self, data_sources, parent=None, **kwargs):
         super().__init__(parent, **kwargs)
 
         self.resize(1200, 800)
@@ -49,8 +48,8 @@ class SophysLiveView(QMainWindow):
 
         self.setCentralWidget(vertical_splitter)
 
-        kafka_data_source = KafkaDataSource(kafka_topic, kafka_bootstrap_servers)
-        self.data_source_manager.add_data_source(kafka_data_source)
+        for data_source in data_sources:
+            self.data_source_manager.add_data_source(data_source)
 
         self.data_source_manager.start()
 
