@@ -1,4 +1,5 @@
-from qtpy.QtCore import Qt, Signal, Slot
+import qtawesome as qta
+from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import QListWidget, QListWidgetItem, QVBoxLayout, QWidget
 
 
@@ -19,10 +20,14 @@ class RunSelector(QWidget):
 
         self._parent.data_source_manager.new_data_stream.connect(self._add_stream)
         self._run_list.itemSelectionChanged.connect(self.change_current_streams)
+        self._run_list.itemDoubleClicked.connect(self.toggle_bookmark)
 
         self.select_item.connect(
             self.on_select_item, Qt.ConnectionType.QueuedConnection
         )
+
+        self.star_unfilled_icon = qta.icon("fa6.star", scale_factor=0.8)
+        self.star_filled_icon = qta.icon("fa6s.star", color="orange", scale_factor=0.8)
 
     def change_current_streams(self):
         current_uids = []
@@ -44,6 +49,10 @@ class RunSelector(QWidget):
         item.setText(display_name)
         item.setData(Qt.ItemDataRole.UserRole, uid)
         item.setData(Qt.ItemDataRole.UserRole + 1, subuid)
+        item.setData(Qt.ItemDataRole.UserRole + 2, False)
+        item.setData(Qt.ItemDataRole.DecorationRole, self.star_unfilled_icon)
+        item.setData(Qt.ItemDataRole.SizeHintRole, QSize(22, 22))
+        item.setToolTip("Double-click to mark this item in the list.")
         self._run_list.addItem(item)
 
         self.select_item.emit(item)
@@ -52,3 +61,13 @@ class RunSelector(QWidget):
     def on_select_item(self, item: QListWidgetItem):
         self._run_list.clearSelection()
         self._run_list.setCurrentItem(item)
+
+    @Slot(QListWidgetItem)
+    def toggle_bookmark(self, item: QListWidgetItem):
+        currently_checked = item.data(Qt.ItemDataRole.UserRole + 2)
+        if currently_checked:
+            item.setData(Qt.ItemDataRole.DecorationRole, self.star_unfilled_icon)
+            item.setData(Qt.ItemDataRole.UserRole + 2, False)
+        else:
+            item.setData(Qt.ItemDataRole.DecorationRole, self.star_filled_icon)
+            item.setData(Qt.ItemDataRole.UserRole + 2, True)

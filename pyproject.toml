@@ -12,6 +12,7 @@ dependencies = [
     "numpy",
     "silx",
     "event_model",
+    "qtawesome",
 ]
 dynamic = ["version"]
 readme = "README.md"
