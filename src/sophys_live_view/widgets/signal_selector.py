@@ -64,6 +64,17 @@ class SignalSelector(QWidget):
             self.default_dependent_signals = self._default_dependent_signals.get(
                 list(new_uids)[0], set()
             )
+        else:
+            self.default_independent_signals = set()
+            self.default_dependent_signals = set()
+
+            for uid in new_uids:
+                self.default_independent_signals |= (
+                    self._default_independent_signals.get(uid, set())
+                )
+                self.default_dependent_signals |= self._default_dependent_signals.get(
+                    uid, set()
+                )
 
         self._1d_signal_selection_table.configure_signals(new_uids, new_signals)
         self._2d_scatter_signal_selection_table.configure_signals(new_uids, new_signals)
@@ -103,6 +114,7 @@ class SelectionTable1D(QTableWidget):
         super().__init__(parent)
 
         self._parent = parent
+        self._old_uids = set()
 
         self.insertColumn(0)
         self.insertColumn(0)
@@ -151,13 +163,15 @@ class SelectionTable1D(QTableWidget):
     def _change_y_axis_signal(self):
         selected_signals = self._get_selected_y_axis_signals()
 
-        uids = set()
+        uids = self._old_uids
         for signal in selected_signals:
             uids |= self._parent.uids_with_signal[signal]
 
         for uid in uids:
             self._parent.plot_display.configure_1d_y_axis_names(uid, selected_signals)
         self._parent.plot_display.update_plots()
+
+        self._old_uids = uids
 
     def _clear_x_axis_buttons(self, selected_signal: str):
         for index in range(self.rowCount()):
@@ -188,6 +202,8 @@ class SelectionTable2D(QTableWidget):
         super().__init__(parent)
 
         self._parent = parent
+        self._old_x_uids = set()
+        self._old_y_uids = set()
 
         self.insertColumn(0)
         self.insertColumn(0)
@@ -268,7 +284,7 @@ class SelectionTable2DScatter(SelectionTable2D):
     def _change_x_axis_signal(self):
         selected_signals = self._get_selected_x_axis_signals()
 
-        uids = set()
+        uids = self._old_x_uids
         for signal in selected_signals:
             uids |= self._parent.uids_with_signal[signal]
 
@@ -278,10 +294,12 @@ class SelectionTable2DScatter(SelectionTable2D):
             )
         self._parent.plot_display.update_plots()
 
+        self._old_x_uids = uids
+
     def _change_y_axis_signal(self):
         selected_signals = self._get_selected_y_axis_signals()
 
-        uids = set()
+        uids = self._old_y_uids
         for signal in selected_signals:
             uids |= self._parent.uids_with_signal[signal]
 
@@ -291,12 +309,14 @@ class SelectionTable2DScatter(SelectionTable2D):
             )
         self._parent.plot_display.update_plots()
 
+        self._old_y_uids = uids
+
 
 class SelectionTable2DGrid(SelectionTable2D):
     def _change_x_axis_signal(self):
         selected_signals = self._get_selected_x_axis_signals()
 
-        uids = set()
+        uids = self._old_x_uids
         for signal in selected_signals:
             uids |= self._parent.uids_with_signal[signal]
 
@@ -306,10 +326,12 @@ class SelectionTable2DGrid(SelectionTable2D):
             )
         self._parent.plot_display.update_plots()
 
+        self._old_x_uids = uids
+
     def _change_y_axis_signal(self):
         selected_signals = self._get_selected_y_axis_signals()
 
-        uids = set()
+        uids = self._old_y_uids
         for signal in selected_signals:
             uids |= self._parent.uids_with_signal[signal]
 
@@ -318,3 +340,5 @@ class SelectionTable2DGrid(SelectionTable2D):
                 uid, selected_signals
             )
         self._parent.plot_display.update_plots()
+
+        self._old_y_uids = uids
