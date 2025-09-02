@@ -19,9 +19,10 @@ class DocumentParser(DocumentRouter):
     def descriptor(self, doc: EventDescriptor):
         start_uid = doc["run_start"]
         descriptor_uid = doc["uid"]
+        descriptor_name = doc["name"]
         fields = set(doc["data_keys"].keys())
 
-        self.on_new_descriptor(start_uid, descriptor_uid, fields)
+        self.on_new_descriptor(start_uid, descriptor_uid, descriptor_name, fields)
 
     def event(self, doc: Event):
         descriptor_uid = doc["descriptor"]
@@ -39,7 +40,13 @@ class DocumentParser(DocumentRouter):
         pass
 
     @abstractmethod
-    def on_new_descriptor(self, start_uid: str, descriptor_uid: str, fields: set[str]):
+    def on_new_descriptor(
+        self,
+        start_uid: str,
+        descriptor_uid: str,
+        descriptor_name: str,
+        fields: set[str],
+    ):
         pass
 
     @abstractmethod
@@ -66,7 +73,17 @@ class BlueskyDataSource(DataSource, DocumentParser):
             "grid_scan": "shape" in metadata,
         }
 
-    def on_new_descriptor(self, start_uid: str, descriptor_uid: str, fields: set[str]):
+    def on_new_descriptor(
+        self,
+        start_uid: str,
+        descriptor_uid: str,
+        descriptor_name: str,
+        fields: set[str],
+    ):
+        # TODO: Support other streams
+        if descriptor_name != "primary":
+            return
+
         fields.add("timestamp")
         self._run_metadata[start_uid]["fields"] = fields
 
@@ -91,7 +108,9 @@ class BlueskyDataSource(DataSource, DocumentParser):
     def on_new_event(
         self, descriptor_uid: str, values: dict, timestamp: float, seq_num: int
     ):
-        start_uid = self._descriptors[descriptor_uid]
+        start_uid = self._descriptors.get(descriptor_uid, None)
+        if start_uid is None:
+            return
 
         received_data = {key: np.array([val]) for key, val in values.items()}
 
