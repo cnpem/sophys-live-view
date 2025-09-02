@@ -64,6 +64,7 @@ class PlotDisplay(QStackedWidget):
 
         self._plots.widget(0).clear()
         self._plots.widget(1).clear()
+        self._plots.widget(2).clear()
 
         for uid, _ in new_uids_and_names:
             self.setCurrentWidget(self._plots)
@@ -72,16 +73,25 @@ class PlotDisplay(QStackedWidget):
                 if detector_name not in self._1d_y_axis_names[uid]:
                     continue
 
+                if not self._plots.widget(0).isVisible():
+                    continue
+
                 self._configure_1d_tab(uid, detector_name, 0)
 
             for detector_name in self._data_cache[uid]:
                 if detector_name not in self._2d_scatter_y_axis_names[uid]:
                     continue
 
+                if not self._plots.widget(1).isVisible():
+                    continue
+
                 self._configure_2d_scatter_tab(uid, detector_name, 1)
 
             for detector_name in self._data_cache[uid]:
                 if detector_name not in self._2d_grid_y_axis_names[uid]:
+                    continue
+
+                if not self._plots.widget(2).isVisible():
                     continue
 
                 self._configure_2d_grid_tab(uid, detector_name, 2)
@@ -195,8 +205,10 @@ class PlotDisplay(QStackedWidget):
             origin=origin,
             scale=scale,
             legend=uid + detector_name,
-            replace=True,
+            resetzoom=False,
         )
 
     def _on_plot_tab_changed(self, new_index: int):
         self.plot_tab_changed.emit(self._plots.tabText(new_index))
+
+        self.update_plots()
