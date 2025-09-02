@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from collections import defaultdict
 from functools import partial
 
@@ -31,9 +32,14 @@ class SignalSelector(QWidget):
         self._1d_signal_selection_table = SelectionTable1D(self)
         self._signal_selection_tab_widget.addTab(self._1d_signal_selection_table, "1D")
 
-        self._2d_signal_selection_table = SelectionTable2DScatter(self)
+        self._2d_scatter_signal_selection_table = SelectionTable2DScatter(self)
         self._signal_selection_tab_widget.addTab(
-            self._2d_signal_selection_table, "2D - Scatter"
+            self._2d_scatter_signal_selection_table, "2D - Scatter"
+        )
+
+        self._2d_grid_signal_selection_table = SelectionTable2DGrid(self)
+        self._signal_selection_tab_widget.addTab(
+            self._2d_grid_signal_selection_table, "2D - Grid"
         )
 
         self._parent.data_source_manager.new_data_stream.connect(self._add_new_signal)
@@ -46,7 +52,8 @@ class SignalSelector(QWidget):
             new_uids.add(uid)
 
         self._1d_signal_selection_table.configure_signals(new_uids, new_signals)
-        self._2d_signal_selection_table.configure_signals(new_uids, new_signals)
+        self._2d_scatter_signal_selection_table.configure_signals(new_uids, new_signals)
+        self._2d_grid_signal_selection_table.configure_signals(new_uids, new_signals)
 
     def _add_new_signal(
         self,
@@ -164,7 +171,7 @@ class SelectionTable1D(QTableWidget):
         return selected_signals
 
 
-class SelectionTable2DScatter(QTableWidget):
+class SelectionTable2D(QTableWidget):
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -213,6 +220,40 @@ class SelectionTable2DScatter(QTableWidget):
                 y_axis_checkbox.setChecked(True)
             self._change_y_axis_signal()
 
+    def _get_selected_x_axis_signals(self):
+        selected_signals = set()
+        y_axis_indexes = []
+
+        for index in range(self.rowCount()):
+            if self.cellWidget(index, 1).isChecked():
+                selected_signals.add(self.item(index, 0).text())
+            if self.cellWidget(index, 2).isChecked():
+                y_axis_indexes.append(index)
+
+        return selected_signals
+
+    def _get_selected_y_axis_signals(self):
+        selected_signals = set()
+        x_axis_indexes = []
+
+        for index in range(self.rowCount()):
+            if self.cellWidget(index, 2).isChecked():
+                selected_signals.add(self.item(index, 0).text())
+            if self.cellWidget(index, 1).isChecked():
+                x_axis_indexes.append(index)
+
+        return selected_signals
+
+    @abstractmethod
+    def _change_x_axis_signal(self):
+        pass
+
+    @abstractmethod
+    def _change_y_axis_signal(self):
+        pass
+
+
+class SelectionTable2DScatter(SelectionTable2D):
     def _change_x_axis_signal(self):
         selected_signals = self._get_selected_x_axis_signals()
 
@@ -243,26 +284,34 @@ class SelectionTable2DScatter(QTableWidget):
 
         self._old_y_axis_signals = selected_signals
 
-    def _get_selected_x_axis_signals(self):
-        selected_signals = set()
-        y_axis_indexes = []
 
-        for index in range(self.rowCount()):
-            if self.cellWidget(index, 1).isChecked():
-                selected_signals.add(self.item(index, 0).text())
-            if self.cellWidget(index, 2).isChecked():
-                y_axis_indexes.append(index)
+class SelectionTable2DGrid(SelectionTable2D):
+    def _change_x_axis_signal(self):
+        selected_signals = self._get_selected_x_axis_signals()
 
-        return selected_signals
+        uids = set()
+        for signal in selected_signals | self._old_y_axis_signals:
+            uids |= self._parent.uids_with_signal[signal]
 
-    def _get_selected_y_axis_signals(self):
-        selected_signals = set()
-        x_axis_indexes = []
+        for uid in uids:
+            self._parent.plot_display.configure_2d_grid_x_axis_names(
+                uid, selected_signals
+            )
+        self._parent.plot_display.update_plots()
 
-        for index in range(self.rowCount()):
-            if self.cellWidget(index, 2).isChecked():
-                selected_signals.add(self.item(index, 0).text())
-            if self.cellWidget(index, 1).isChecked():
-                x_axis_indexes.append(index)
+        self._old_x_axis_signals = selected_signals
 
-        return selected_signals
+    def _change_y_axis_signal(self):
+        selected_signals = self._get_selected_y_axis_signals()
+
+        uids = set()
+        for signal in selected_signals | self._old_y_axis_signals:
+            uids |= self._parent.uids_with_signal[signal]
+
+        for uid in uids:
+            self._parent.plot_display.configure_2d_grid_y_axis_names(
+                uid, selected_signals
+            )
+        self._parent.plot_display.update_plots()
+
+        self._old_y_axis_signals = selected_signals

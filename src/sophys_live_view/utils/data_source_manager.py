@@ -15,7 +15,9 @@ class DataSourceManager(QThread):
     new_data_stream = Signal(
         str, str, str, set, dict
     )  # uid, subuid, display_name, fields, metadata
-    new_data_received = Signal(str, str, dict)  # uid, subuid, {signal : data}
+    new_data_received = Signal(
+        str, str, dict, dict
+    )  # uid, subuid, {signal : data}, {signal : metadata}
 
     def __init__(self):
         super().__init__()
@@ -51,11 +53,13 @@ class DataSourceManager(QThread):
                 data_source_uid,
                 uid,
                 {"timestamp": np.array([1, 2, 3]), "det": np.array([1, 2, 3])},
+                {},
             )
             self.new_data_received.emit(
                 data_source_uid,
                 uid,
                 {"timestamp": np.array([4, 5, 6]), "det": np.array([5, 6, 7])},
+                {},
             )
 
             uid = str(uuid.uuid4())
@@ -66,11 +70,13 @@ class DataSourceManager(QThread):
                 data_source_uid,
                 uid,
                 {"timestamp": np.array([1, 2, 3]), "det": np.array([2, 2, 3])},
+                {},
             )
             self.new_data_received.emit(
                 data_source_uid,
                 uid,
                 {"timestamp": np.array([4, 5, 6]), "det": np.array([5, 6, 6])},
+                {},
             )
 
             uid = str(uuid.uuid4())
@@ -85,6 +91,7 @@ class DataSourceManager(QThread):
                     "det": np.array([2, 1, 3]),
                     "det2": np.array([9, 8, 7]),
                 },
+                {},
             )
             self.new_data_received.emit(
                 data_source_uid,
@@ -94,6 +101,7 @@ class DataSourceManager(QThread):
                     "det": np.array([5, 9, 6]),
                     "det2": np.array([1, 2, 3]),
                 },
+                {},
             )
 
             for data_source in self._data_sources:
