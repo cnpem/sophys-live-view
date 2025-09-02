@@ -138,6 +138,8 @@ class PlotDisplay(QStackedWidget):
         subuid: str,
         display_name: str,
         signals: set[str],
+        detectors: set[str],
+        motors: list[str],
         metadata: dict,
     ):
         self._metadata_cache[subuid] = metadata

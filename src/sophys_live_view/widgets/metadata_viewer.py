@@ -41,7 +41,7 @@ class MetadataViewer(QTabWidget):
         display_name: str,
         signals: set[str],
         detectors: set[str],
-        motors: set[str],
+        motors: list[str],
         metadata: dict,
     ):
         self._stream_metadata[subuid] = metadata
