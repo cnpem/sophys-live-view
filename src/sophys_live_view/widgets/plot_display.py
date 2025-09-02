@@ -66,7 +66,7 @@ class PlotDisplay(QStackedWidget):
         self._plots.widget(1).clear()
         self._plots.widget(2).clear()
 
-        for uid, _ in new_uids_and_names:
+        for uid, stream_name in new_uids_and_names:
             self.setCurrentWidget(self._plots)
 
             for detector_name in self._data_cache[uid]:
@@ -76,7 +76,7 @@ class PlotDisplay(QStackedWidget):
                 if not self._plots.widget(0).isVisible():
                     continue
 
-                self._configure_1d_tab(uid, detector_name, 0)
+                self._configure_1d_tab(uid, stream_name, detector_name, 0)
 
             for detector_name in self._data_cache[uid]:
                 if detector_name not in self._2d_scatter_y_axis_names[uid]:
@@ -85,7 +85,7 @@ class PlotDisplay(QStackedWidget):
                 if not self._plots.widget(1).isVisible():
                     continue
 
-                self._configure_2d_scatter_tab(uid, detector_name, 1)
+                self._configure_2d_scatter_tab(uid, stream_name, detector_name, 1)
 
             for detector_name in self._data_cache[uid]:
                 if detector_name not in self._2d_grid_y_axis_names[uid]:
@@ -94,7 +94,7 @@ class PlotDisplay(QStackedWidget):
                 if not self._plots.widget(2).isVisible():
                     continue
 
-                self._configure_2d_grid_tab(uid, detector_name, 2)
+                self._configure_2d_grid_tab(uid, stream_name, detector_name, 2)
 
     def get_1d_x_axis_name(self, uid: str):
         return self._1d_x_axis_names[uid]
@@ -159,7 +159,9 @@ class PlotDisplay(QStackedWidget):
                 )
         self.update_plots()
 
-    def _configure_1d_tab(self, uid: str, detector_name: str, tab_index: int):
+    def _configure_1d_tab(
+        self, uid: str, stream_name: str, detector_name: str, tab_index: int
+    ):
         x_axis_data = self._data_cache[uid].get(self._1d_x_axis_names[uid], None)
         if x_axis_data is None:
             return
@@ -169,9 +171,15 @@ class PlotDisplay(QStackedWidget):
             cached_data = np.trim_zeros(cached_data.flatten())
 
         plot_widget = self._plots.widget(tab_index)
-        plot_widget.addCurve(x_axis_data, cached_data, legend=uid + detector_name)
+        plot_widget.addCurve(
+            x_axis_data,
+            cached_data,
+            legend=detector_name + " - " + stream_name + " - " + uid,
+        )
 
-    def _configure_2d_scatter_tab(self, uid: str, detector_name: str, tab_index: int):
+    def _configure_2d_scatter_tab(
+        self, uid: str, stream_name: str, detector_name: str, tab_index: int
+    ):
         independent_axis_fields = list(self._2d_scatter_x_axis_names[uid])
         if len(independent_axis_fields) < 2:
             return
@@ -185,10 +193,15 @@ class PlotDisplay(QStackedWidget):
 
         plot_widget = self._plots.widget(tab_index)
         plot_widget.addScatter(
-            x_axis_data, y_axis_data, cached_data, legend=uid + detector_name
+            x_axis_data,
+            y_axis_data,
+            cached_data,
+            legend=detector_name + " - " + stream_name + " - " + uid,
         )
 
-    def _configure_2d_grid_tab(self, uid: str, detector_name: str, tab_index: int):
+    def _configure_2d_grid_tab(
+        self, uid: str, stream_name: str, detector_name: str, tab_index: int
+    ):
         independent_axis_fields = list(self._2d_grid_x_axis_names[uid])
         if len(independent_axis_fields) < 2:
             return
@@ -208,7 +221,7 @@ class PlotDisplay(QStackedWidget):
             cached_data,
             origin=origin,
             scale=scale,
-            legend=uid + detector_name,
+            legend=detector_name + " - " + stream_name + " - " + uid,
             resetzoom=False,
         )
 
