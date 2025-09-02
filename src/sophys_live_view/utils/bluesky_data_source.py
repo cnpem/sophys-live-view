@@ -70,12 +70,21 @@ class BlueskyDataSource(DataSource, DocumentParser):
         fields.add("timestamp")
         self._run_metadata[start_uid]["fields"] = fields
 
+        detectors = set(self._run_metadata[start_uid]["metadata"].get("detectors", []))
+
+        dimensions = self._run_metadata[start_uid]["metadata"]["hints"]["dimensions"]
+        motors = set(v for x in dimensions for v in x[0])
+        if len(motors) == 1 and "time" in motors:
+            motors = {"timestamp"}
+
         self._descriptors[descriptor_uid] = start_uid
 
         self.new_data_stream.emit(
             start_uid,
             self._run_metadata[start_uid]["name"],
             fields,
+            detectors,
+            motors,
             self._run_metadata[start_uid]["metadata"],
         )
 

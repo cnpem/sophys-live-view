@@ -23,6 +23,9 @@ class SignalSelector(QWidget):
         self._signals = dict()
         self.uids_with_signal = defaultdict(lambda: set())
 
+        self.default_dependent_signals = set()
+        self.default_independent_signals = set()
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -62,9 +65,14 @@ class SignalSelector(QWidget):
         subuid: str,
         display_name: str,
         signals: set[str],
+        detectors: set[str],
+        motors: set[str],
         metadata: dict,
     ):
         self._signals[subuid] = signals
+
+        self.default_dependent_signals = detectors
+        self.default_independent_signals = motors
 
         for signal in signals:
             self.uids_with_signal[signal].add(subuid)
@@ -130,6 +138,9 @@ class SelectionTable1D(QTableWidget):
                 y_axis_checkbox.setChecked(True)
             self._change_y_axis_signal()
 
+            if signal in self._parent.default_independent_signals:
+                self._change_x_axis_signal(signal)
+
     def _change_x_axis_signal(self, new_signal_name: str):
         self._clear_x_axis_buttons(new_signal_name)
 
@@ -153,27 +164,23 @@ class SelectionTable1D(QTableWidget):
     def _clear_x_axis_buttons(self, selected_signal: str):
         for index in range(self.rowCount()):
             if self.item(index, 0).text() == selected_signal:
+                self.cellWidget(index, 1).setChecked(True)
                 continue
 
             self.cellWidget(index, 1).setChecked(False)
 
     def _get_selected_y_axis_signals(self):
         selected_signals = set()
-        x_axis_index = -1
 
         for index in range(self.rowCount()):
             if self.cellWidget(index, 2).isChecked():
                 selected_signals.add(self.item(index, 0).text())
-            if self.cellWidget(index, 1).isChecked():
-                x_axis_index = index
 
         if len(selected_signals) == 0 and self.rowCount() >= 2:
-            if x_axis_index == 0:
-                self.cellWidget(1, 2).setChecked(True)
-                selected_signals.add(self.item(1, 0).text())
-            else:
-                self.cellWidget(0, 2).setChecked(True)
-                selected_signals.add(self.item(0, 0).text())
+            for index in range(self.rowCount()):
+                if self.item(index, 0).text() in self._parent.default_dependent_signals:
+                    self.cellWidget(index, 2).setChecked(True)
+                    selected_signals.add(self.item(index, 0).text())
 
         return selected_signals
 

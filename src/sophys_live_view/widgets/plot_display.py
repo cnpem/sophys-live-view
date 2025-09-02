@@ -19,7 +19,7 @@ class PlotDisplay(QStackedWidget):
         self._data_cache = defaultdict(lambda: defaultdict(lambda: np.array([[], []])))
         self._metadata_cache = defaultdict(lambda: dict())
 
-        self._1d_x_axis_names = defaultdict(lambda: "timestamp")
+        self._1d_x_axis_names = defaultdict(lambda: "")
         self._1d_y_axis_names = defaultdict(lambda: set())
 
         self._2d_scatter_x_axis_names = defaultdict(lambda: set())
@@ -158,7 +158,9 @@ class PlotDisplay(QStackedWidget):
         self.update_plots()
 
     def _configure_1d_tab(self, uid: str, detector_name: str, tab_index: int):
-        x_axis_data = self._data_cache[uid][self._1d_x_axis_names[uid]]
+        x_axis_data = self._data_cache[uid].get(self._1d_x_axis_names[uid], None)
+        if x_axis_data is None:
+            return
         cached_data = self._data_cache[uid][detector_name]
 
         if len(cached_data.shape) > 1:

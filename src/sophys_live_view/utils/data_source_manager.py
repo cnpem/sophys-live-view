@@ -13,8 +13,8 @@ class DataSourceManager(QThread):
     # The idea is that we keep track of both separately so that we can do stuff like filtering
     # on the UI based on DataSource, for example.
     new_data_stream = Signal(
-        str, str, str, set, dict
-    )  # uid, subuid, display_name, fields, metadata
+        str, str, str, set, set, set, dict
+    )  # uid, subuid, display_name, fields, detectors, motors, metadata
     new_data_received = Signal(
         str, str, dict, dict
     )  # uid, subuid, {signal : data}, {signal : metadata}
@@ -47,7 +47,13 @@ class DataSourceManager(QThread):
 
             uid = str(uuid.uuid4())
             self.new_data_stream.emit(
-                data_source_uid, uid, "abc", {"timestamp", "det"}, {"uid": uid}
+                data_source_uid,
+                uid,
+                "abc",
+                {"timestamp", "det"},
+                {"det"},
+                {"timestamp"},
+                {"uid": uid},
             )
             self.new_data_received.emit(
                 data_source_uid,
@@ -64,7 +70,13 @@ class DataSourceManager(QThread):
 
             uid = str(uuid.uuid4())
             self.new_data_stream.emit(
-                data_source_uid, uid, "def", {"timestamp", "det"}, {"uid": uid}
+                data_source_uid,
+                uid,
+                "def",
+                {"timestamp", "det"},
+                {"det"},
+                {"timestamp"},
+                {"uid": uid},
             )
             self.new_data_received.emit(
                 data_source_uid,
@@ -81,7 +93,13 @@ class DataSourceManager(QThread):
 
             uid = str(uuid.uuid4())
             self.new_data_stream.emit(
-                data_source_uid, uid, "ghi", {"timestamp", "det", "det2"}, {"uid": uid}
+                data_source_uid,
+                uid,
+                "ghi",
+                {"timestamp", "det", "det2"},
+                {"det2"},
+                {"timestamp"},
+                {"uid": uid},
             )
             self.new_data_received.emit(
                 data_source_uid,
