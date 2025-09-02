@@ -24,7 +24,7 @@ class SignalSelector(QWidget):
         self.uids_with_signal = defaultdict(lambda: set())
 
         self.default_dependent_signals = set()
-        self.default_independent_signals = set()
+        self.default_independent_signals = list()
         self._default_dependent_signals = dict()
         self._default_independent_signals = dict()
 
@@ -65,12 +65,12 @@ class SignalSelector(QWidget):
                 list(new_uids)[0], set()
             )
         else:
-            self.default_independent_signals = set()
+            self.default_independent_signals = list()
             self.default_dependent_signals = set()
 
             for uid in new_uids:
-                self.default_independent_signals |= (
-                    self._default_independent_signals.get(uid, set())
+                self.default_independent_signals.extend(
+                    self._default_independent_signals.get(uid, [])
                 )
                 self.default_dependent_signals |= self._default_dependent_signals.get(
                     uid, set()
