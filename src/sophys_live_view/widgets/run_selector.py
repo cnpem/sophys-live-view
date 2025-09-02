@@ -1,6 +1,15 @@
 import qtawesome as qta
 from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import QListWidget, QListWidgetItem, QVBoxLayout, QWidget
+from qtpy.QtWidgets import (
+    QFileDialog,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+from ..utils.json_data_source import JSONDataSource
 
 
 class RunSelector(QWidget):
@@ -19,6 +28,10 @@ class RunSelector(QWidget):
         self._run_list = QListWidget()
         self._run_list.setSelectionMode(QListWidget.SelectionMode.ExtendedSelection)
         layout.addWidget(self._run_list)
+
+        self._file_import_button = QPushButton("Import from file...")
+        self._file_import_button.clicked.connect(self._import_file)
+        layout.addWidget(self._file_import_button)
 
         self._parent.data_source_manager.new_data_stream.connect(self._add_stream)
         self._parent.data_source_manager.go_to_last_automatically.connect(
@@ -81,3 +94,15 @@ class RunSelector(QWidget):
     @Slot(str, bool)
     def _set_go_to_last(self, uid: str, state: bool):
         self._go_to_last_automatically = state
+
+    def _import_file(self):
+        file_name, selected_filter = QFileDialog.getOpenFileName(
+            caption="Select a file to load into sophys-live-view.",
+            filter="JSON (*.json)",
+        )
+        if file_name == "":
+            return
+
+        data_source = JSONDataSource(file_name)
+        self._parent.data_source_manager.add_data_source(data_source)
+        data_source.start_thread()
