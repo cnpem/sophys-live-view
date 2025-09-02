@@ -1,13 +1,15 @@
 from collections import defaultdict
 
 import numpy as np
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QLabel, QStackedWidget, QTabWidget
 from silx.gui.colors import Colormap
 from silx.gui.plot.PlotWindow import Plot1D, Plot2D
 
 
 class PlotDisplay(QStackedWidget):
+    plot_tab_changed = Signal(str)  # new tab name
+
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
@@ -47,6 +49,8 @@ class PlotDisplay(QStackedWidget):
         self._parent.data_source_manager.new_data_received.connect(
             self._receive_new_data
         )
+
+        self._plots.currentChanged.connect(self._on_plot_tab_changed)
 
     def update_plots(self):
         self.change_current_streams(self._current_uids)
@@ -193,3 +197,6 @@ class PlotDisplay(QStackedWidget):
             legend=uid + detector_name,
             replace=True,
         )
+
+    def _on_plot_tab_changed(self, new_index: int):
+        self.plot_tab_changed.emit(self._plots.tabText(new_index))

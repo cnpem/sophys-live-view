@@ -43,6 +43,7 @@ class SignalSelector(QWidget):
         )
 
         self._parent.data_source_manager.new_data_stream.connect(self._add_new_signal)
+        self.plot_display.plot_tab_changed.connect(self._change_tab)
 
     def change_current_streams(self, new_uids_and_names: list[tuple[str, str]]):
         new_signals = set()
@@ -67,6 +68,12 @@ class SignalSelector(QWidget):
 
         for signal in signals:
             self.uids_with_signal[signal].add(subuid)
+
+    def _change_tab(self, new_tab_name: str):
+        for index in range(self._signal_selection_tab_widget.count()):
+            if self._signal_selection_tab_widget.tabText(index) == new_tab_name:
+                self._signal_selection_tab_widget.setCurrentIndex(index)
+                break
 
     @property
     def plot_display(self):
