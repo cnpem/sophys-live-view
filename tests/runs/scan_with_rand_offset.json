@@ -1,0 +1,398 @@
+[
+  [
+    "start",
+    {
+      "uid": "ff3476a7-9bab-40e2-acf5-fa74980a3550",
+      "time": 1756920676.0458567,
+      "versions": {
+        "ophyd": "1.10.5",
+        "bluesky": "1.14.0"
+      },
+      "scan_id": 5,
+      "plan_type": "generator",
+      "plan_name": "scan",
+      "detectors": [
+        "rand"
+      ],
+      "motors": [
+        "motor"
+      ],
+      "num_points": 11,
+      "num_intervals": 10,
+      "plan_args": {
+        "detectors": [
+          "SynPeriodicSignal(name='rand', value=0.6786286671907061, timestamp=1756920675.0090942)"
+        ],
+        "num": 11,
+        "args": [
+          "SynAxis(prefix='', name='motor', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration'])",
+          0.0,
+          2.0
+        ],
+        "per_step": "None"
+      },
+      "hints": {
+        "dimensions": [
+          [
+            [
+              "motor"
+            ],
+            "primary"
+          ]
+        ]
+      },
+      "plan_pattern": "inner_product",
+      "plan_pattern_module": "bluesky.plan_patterns",
+      "plan_pattern_args": {
+        "num": 11,
+        "args": [
+          "SynAxis(prefix='', name='motor', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration'])",
+          0.0,
+          2.0
+        ]
+      },
+      "metadata_save_file_location": "/mnt/gluster/common/bluesky/bluesky-config-test/ibira",
+      "metadata_save_file_identifier": "scan_with_rand_offset",
+      "document_type": "start"
+    }
+  ],
+  [
+    "descriptor",
+    {
+      "configuration": {
+        "rand": {
+          "data": {
+            "rand": 0.9174338703641692
+          },
+          "timestamps": {
+            "rand": 1756920676.253637
+          },
+          "data_keys": {
+            "rand": {
+              "source": "SIM:rand",
+              "dtype": "number",
+              "shape": [],
+              "precision": 3
+            }
+          }
+        },
+        "motor": {
+          "data": {
+            "motor_velocity": 1,
+            "motor_acceleration": 1
+          },
+          "timestamps": {
+            "motor_velocity": 1755017196.5346859,
+            "motor_acceleration": 1755017196.5347126
+          },
+          "data_keys": {
+            "motor_velocity": {
+              "source": "SIM:motor_velocity",
+              "dtype": "integer",
+              "shape": []
+            },
+            "motor_acceleration": {
+              "source": "SIM:motor_acceleration",
+              "dtype": "integer",
+              "shape": []
+            }
+          }
+        }
+      },
+      "data_keys": {
+        "rand": {
+          "source": "SIM:rand",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "rand"
+        },
+        "motor": {
+          "source": "SIM:motor",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "motor"
+        },
+        "motor_setpoint": {
+          "source": "SIM:motor_setpoint",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "motor"
+        }
+      },
+      "name": "primary",
+      "object_keys": {
+        "rand": [
+          "rand"
+        ],
+        "motor": [
+          "motor",
+          "motor_setpoint"
+        ]
+      },
+      "run_start": "ff3476a7-9bab-40e2-acf5-fa74980a3550",
+      "time": 1756920676.2595568,
+      "uid": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "hints": {
+        "rand": {
+          "fields": [
+            "rand"
+          ]
+        },
+        "motor": {
+          "fields": [
+            "motor"
+          ]
+        }
+      },
+      "document_type": "descriptor"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "0272bcf6-35aa-4d6d-99bf-23c06ea03e06",
+      "time": 1756920676.2642922,
+      "data": {
+        "rand": 0.9174338703641692,
+        "motor": 0.0,
+        "motor_setpoint": 0.0
+      },
+      "timestamps": {
+        "rand": 1756920676.253637,
+        "motor": 1756920676.251033,
+        "motor_setpoint": 1756920676.0503044
+      },
+      "seq_num": 1,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "9a1e5de7-cfa2-4663-846a-b092083a43f0",
+      "time": 1756920676.474865,
+      "data": {
+        "rand": 0.409656958131577,
+        "motor": 0.2,
+        "motor_setpoint": 0.2
+      },
+      "timestamps": {
+        "rand": 1756920676.4685092,
+        "motor": 1756920676.4660766,
+        "motor_setpoint": 1756920676.2655733
+      },
+      "seq_num": 2,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "06305a16-f2d5-4ccb-9bcb-deeced57fab8",
+      "time": 1756920676.6864178,
+      "data": {
+        "rand": 0.2587851929776448,
+        "motor": 0.4,
+        "motor_setpoint": 0.4
+      },
+      "timestamps": {
+        "rand": 1756920676.680552,
+        "motor": 1756920676.678132,
+        "motor_setpoint": 1756920676.4773126
+      },
+      "seq_num": 3,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "abbef1df-4437-4b7e-8ec9-6854b0923788",
+      "time": 1756920676.895321,
+      "data": {
+        "rand": 0.2847316753393866,
+        "motor": 0.6000000000000001,
+        "motor_setpoint": 0.6000000000000001
+      },
+      "timestamps": {
+        "rand": 1756920676.8906329,
+        "motor": 1756920676.888185,
+        "motor_setpoint": 1756920676.6876738
+      },
+      "seq_num": 4,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "96dfebdc-2d97-42dd-af20-1d19beb3de30",
+      "time": 1756920677.1061606,
+      "data": {
+        "rand": 0.19567862036396355,
+        "motor": 0.8,
+        "motor_setpoint": 0.8
+      },
+      "timestamps": {
+        "rand": 1756920677.0994391,
+        "motor": 1756920677.0970948,
+        "motor_setpoint": 1756920676.8965688
+      },
+      "seq_num": 5,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "0b5bc4e0-8ee6-4201-b3d1-1be8a21c5b6c",
+      "time": 1756920677.3154504,
+      "data": {
+        "rand": 0.05947137359387822,
+        "motor": 1.0,
+        "motor_setpoint": 1.0
+      },
+      "timestamps": {
+        "rand": 1756920677.3105195,
+        "motor": 1756920677.3079689,
+        "motor_setpoint": 1756920677.1074529
+      },
+      "seq_num": 6,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "87603f6f-5ca6-41c9-9468-0455d097d3df",
+      "time": 1756920677.526321,
+      "data": {
+        "rand": 0.6247358187594692,
+        "motor": 1.2000000000000002,
+        "motor_setpoint": 1.2000000000000002
+      },
+      "timestamps": {
+        "rand": 1756920677.5199735,
+        "motor": 1756920677.517405,
+        "motor_setpoint": 1756920677.3168578
+      },
+      "seq_num": 7,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "67451d25-f438-42e0-a9e1-1c31e26b78a9",
+      "time": 1756920677.7386186,
+      "data": {
+        "rand": 0.5310080799696691,
+        "motor": 1.4000000000000001,
+        "motor_setpoint": 1.4000000000000001
+      },
+      "timestamps": {
+        "rand": 1756920677.732304,
+        "motor": 1756920677.7296968,
+        "motor_setpoint": 1756920677.5288012
+      },
+      "seq_num": 8,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "4216b29e-4ee9-44c2-98df-bd23e0b352b0",
+      "time": 1756920677.9523304,
+      "data": {
+        "rand": 0.8904654273536343,
+        "motor": 1.6,
+        "motor_setpoint": 1.6
+      },
+      "timestamps": {
+        "rand": 1756920677.9447422,
+        "motor": 1756920677.942299,
+        "motor_setpoint": 1756920677.7412984
+      },
+      "seq_num": 9,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "553b130d-ec18-432c-a5f9-17d50b56e7ae",
+      "time": 1756920678.1650493,
+      "data": {
+        "rand": 0.24536464944008862,
+        "motor": 1.8,
+        "motor_setpoint": 1.8
+      },
+      "timestamps": {
+        "rand": 1756920678.158662,
+        "motor": 1756920678.1560922,
+        "motor_setpoint": 1756920677.9549842
+      },
+      "seq_num": 10,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "3f7b6e03-2c86-438a-b775-84c4f8f743c6",
+      "time": 1756920678.3750372,
+      "data": {
+        "rand": 0.5913811394861521,
+        "motor": 2.0,
+        "motor_setpoint": 2.0
+      },
+      "timestamps": {
+        "rand": 1756920678.3697758,
+        "motor": 1756920678.367304,
+        "motor_setpoint": 1756920678.1667974
+      },
+      "seq_num": 11,
+      "filled": {},
+      "descriptor": "b4fafc9a-d536-4303-8eda-0112639e75a7",
+      "document_type": "event"
+    }
+  ],
+  [
+    "stop",
+    {
+      "uid": "82860654-5635-4263-821a-5f2bb5a7a074",
+      "time": 1756920678.3756418,
+      "run_start": "ff3476a7-9bab-40e2-acf5-fa74980a3550",
+      "exit_status": "success",
+      "reason": "",
+      "num_events": {
+        "primary": 11
+      },
+      "document_type": "stop"
+    }
+  ]
+]

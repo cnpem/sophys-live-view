@@ -1,0 +1,640 @@
+[
+  [
+    "start",
+    {
+      "uid": "17181732-6f2f-4af4-8a68-61a13c68c364",
+      "time": 1756920766.8621466,
+      "versions": {
+        "ophyd": "1.10.5",
+        "bluesky": "1.14.0"
+      },
+      "scan_id": 6,
+      "plan_type": "generator",
+      "plan_name": "scan",
+      "detectors": [
+        "det"
+      ],
+      "motors": [
+        "motor"
+      ],
+      "num_points": 21,
+      "num_intervals": 20,
+      "plan_args": {
+        "detectors": [
+          "SynGauss(prefix='', name='det', read_attrs=['val'], configuration_attrs=['Imax', 'center', 'sigma', 'noise', 'noise_multiplier'])"
+        ],
+        "num": 21,
+        "args": [
+          "SynAxis(prefix='', name='motor', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration'])",
+          -1.0,
+          1.0
+        ],
+        "per_step": "None"
+      },
+      "hints": {
+        "dimensions": [
+          [
+            [
+              "motor"
+            ],
+            "primary"
+          ]
+        ]
+      },
+      "plan_pattern": "inner_product",
+      "plan_pattern_module": "bluesky.plan_patterns",
+      "plan_pattern_args": {
+        "num": 21,
+        "args": [
+          "SynAxis(prefix='', name='motor', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration'])",
+          -1.0,
+          1.0
+        ]
+      },
+      "metadata_save_file_location": "/mnt/gluster/common/bluesky/bluesky-config-test/ibira",
+      "metadata_save_file_identifier": "scan_with_det",
+      "document_type": "start"
+    }
+  ],
+  [
+    "descriptor",
+    {
+      "configuration": {
+        "det": {
+          "data": {
+            "det_Imax": 1,
+            "det_center": 0,
+            "det_sigma": 1,
+            "det_noise": "none",
+            "det_noise_multiplier": 1
+          },
+          "timestamps": {
+            "det_Imax": 1755017196.5351865,
+            "det_center": 1755017196.5351741,
+            "det_sigma": 1755017196.5352023,
+            "det_noise": 1755017196.535124,
+            "det_noise_multiplier": 1755017196.53516
+          },
+          "data_keys": {
+            "det_Imax": {
+              "source": "SIM:det_Imax",
+              "dtype": "integer",
+              "shape": []
+            },
+            "det_center": {
+              "source": "SIM:det_center",
+              "dtype": "integer",
+              "shape": []
+            },
+            "det_sigma": {
+              "source": "SIM:det_sigma",
+              "dtype": "integer",
+              "shape": []
+            },
+            "det_noise": {
+              "source": "SIM:det_noise",
+              "dtype": "integer",
+              "shape": [],
+              "enum_strs": [
+                "none",
+                "poisson",
+                "uniform"
+              ]
+            },
+            "det_noise_multiplier": {
+              "source": "SIM:det_noise_multiplier",
+              "dtype": "integer",
+              "shape": []
+            }
+          }
+        },
+        "motor": {
+          "data": {
+            "motor_velocity": 1,
+            "motor_acceleration": 1
+          },
+          "timestamps": {
+            "motor_velocity": 1755017196.5346859,
+            "motor_acceleration": 1755017196.5347126
+          },
+          "data_keys": {
+            "motor_velocity": {
+              "source": "SIM:motor_velocity",
+              "dtype": "integer",
+              "shape": []
+            },
+            "motor_acceleration": {
+              "source": "SIM:motor_acceleration",
+              "dtype": "integer",
+              "shape": []
+            }
+          }
+        }
+      },
+      "data_keys": {
+        "det": {
+          "source": "SIM:det",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "det"
+        },
+        "motor": {
+          "source": "SIM:motor",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "motor"
+        },
+        "motor_setpoint": {
+          "source": "SIM:motor_setpoint",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "motor"
+        }
+      },
+      "name": "primary",
+      "object_keys": {
+        "det": [
+          "det"
+        ],
+        "motor": [
+          "motor",
+          "motor_setpoint"
+        ]
+      },
+      "run_start": "17181732-6f2f-4af4-8a68-61a13c68c364",
+      "time": 1756920767.0787098,
+      "uid": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "hints": {
+        "det": {
+          "fields": [
+            "det"
+          ]
+        },
+        "motor": {
+          "fields": [
+            "motor"
+          ]
+        }
+      },
+      "document_type": "descriptor"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "1bacb094-0bb6-4da2-8a9e-ed3ce71e794b",
+      "time": 1756920767.0849657,
+      "data": {
+        "det": 0.6065306597126334,
+        "motor": -1.0,
+        "motor_setpoint": -1.0
+      },
+      "timestamps": {
+        "det": 1756920767.0713775,
+        "motor": 1756920767.0685313,
+        "motor_setpoint": 1756920766.8679173
+      },
+      "seq_num": 1,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "55a39be8-1294-4466-adc1-235618cde5f3",
+      "time": 1756920767.2957606,
+      "data": {
+        "det": 0.6669768108584744,
+        "motor": -0.9,
+        "motor_setpoint": -0.9
+      },
+      "timestamps": {
+        "det": 1756920767.2894194,
+        "motor": 1756920767.2867682,
+        "motor_setpoint": 1756920767.0862324
+      },
+      "seq_num": 2,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "6968aaf4-ad9b-4d18-83b2-808b80e1e130",
+      "time": 1756920767.5073085,
+      "data": {
+        "det": 0.7261490370736908,
+        "motor": -0.8,
+        "motor_setpoint": -0.8
+      },
+      "timestamps": {
+        "det": 1756920767.5012488,
+        "motor": 1756920767.4984694,
+        "motor_setpoint": 1756920767.297948
+      },
+      "seq_num": 3,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "7f521521-3748-4f63-8012-b716e9869597",
+      "time": 1756920767.7193632,
+      "data": {
+        "det": 0.7827045382418681,
+        "motor": -0.7,
+        "motor_setpoint": -0.7
+      },
+      "timestamps": {
+        "det": 1756920767.7130392,
+        "motor": 1756920767.7104862,
+        "motor_setpoint": 1756920767.5099418
+      },
+      "seq_num": 4,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "3e208fbb-6f4d-4110-aebd-93733135aa33",
+      "time": 1756920767.927355,
+      "data": {
+        "det": 0.835270211411272,
+        "motor": -0.6,
+        "motor_setpoint": -0.6
+      },
+      "timestamps": {
+        "det": 1756920767.9230554,
+        "motor": 1756920767.9216862,
+        "motor_setpoint": 1756920767.721152
+      },
+      "seq_num": 5,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "811f17c9-d432-4a29-8ac6-1087dc898296",
+      "time": 1756920768.1407473,
+      "data": {
+        "det": 0.8824969025845955,
+        "motor": -0.5,
+        "motor_setpoint": -0.5
+      },
+      "timestamps": {
+        "det": 1756920768.1341255,
+        "motor": 1756920768.1315076,
+        "motor_setpoint": 1756920767.9303875
+      },
+      "seq_num": 6,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "9f9343f8-8a21-4a67-98d4-28562049d155",
+      "time": 1756920768.352201,
+      "data": {
+        "det": 0.9231163463866359,
+        "motor": -0.3999999999999999,
+        "motor_setpoint": -0.3999999999999999
+      },
+      "timestamps": {
+        "det": 1756920768.3458319,
+        "motor": 1756920768.3432305,
+        "motor_setpoint": 1756920768.1425974
+      },
+      "seq_num": 7,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "a25f5e37-c88f-4bab-af83-67d59f8be934",
+      "time": 1756920768.5608542,
+      "data": {
+        "det": 0.9559974818331,
+        "motor": -0.29999999999999993,
+        "motor_setpoint": -0.29999999999999993
+      },
+      "timestamps": {
+        "det": 1756920768.5570855,
+        "motor": 1756920768.555458,
+        "motor_setpoint": 1756920768.3543894
+      },
+      "seq_num": 8,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "9a6bb564-085a-4653-9cb1-77e16dde732d",
+      "time": 1756920768.7715685,
+      "data": {
+        "det": 0.9801986733067554,
+        "motor": -0.19999999999999996,
+        "motor_setpoint": -0.19999999999999996
+      },
+      "timestamps": {
+        "det": 1756920768.7652712,
+        "motor": 1756920768.7630613,
+        "motor_setpoint": 1756920768.5624557
+      },
+      "seq_num": 9,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "5dc5cfb9-770a-4ce3-b767-253fbe796e3b",
+      "time": 1756920768.9791033,
+      "data": {
+        "det": 0.9950124791926823,
+        "motor": -0.09999999999999998,
+        "motor_setpoint": -0.09999999999999998
+      },
+      "timestamps": {
+        "det": 1756920768.975987,
+        "motor": 1756920768.9746594,
+        "motor_setpoint": 1756920768.7741458
+      },
+      "seq_num": 10,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "e739b8c0-11ba-4188-b45f-31df71c2c341",
+      "time": 1756920769.1890504,
+      "data": {
+        "det": 1.0,
+        "motor": 0.0,
+        "motor_setpoint": 0.0
+      },
+      "timestamps": {
+        "det": 1756920769.1827512,
+        "motor": 1756920769.1809096,
+        "motor_setpoint": 1756920768.9803913
+      },
+      "seq_num": 11,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "c7f15f39-0bca-4e6c-8fa2-83a5de7b9dd1",
+      "time": 1756920769.4004083,
+      "data": {
+        "det": 0.9950124791926823,
+        "motor": 0.10000000000000009,
+        "motor_setpoint": 0.10000000000000009
+      },
+      "timestamps": {
+        "det": 1756920769.3940191,
+        "motor": 1756920769.391458,
+        "motor_setpoint": 1756920769.1909373
+      },
+      "seq_num": 12,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "ecc63e15-0b38-4b28-8d90-9fb54d61841d",
+      "time": 1756920769.6070354,
+      "data": {
+        "det": 0.9801986733067553,
+        "motor": 0.20000000000000018,
+        "motor_setpoint": 0.20000000000000018
+      },
+      "timestamps": {
+        "det": 1756920769.6041076,
+        "motor": 1756920769.602779,
+        "motor_setpoint": 1756920769.4022448
+      },
+      "seq_num": 13,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "d9288dbe-a197-4318-b8ce-9f88e28f6809",
+      "time": 1756920769.8179946,
+      "data": {
+        "det": 0.9559974818330998,
+        "motor": 0.30000000000000004,
+        "motor_setpoint": 0.30000000000000004
+      },
+      "timestamps": {
+        "det": 1756920769.8115258,
+        "motor": 1756920769.8087842,
+        "motor_setpoint": 1756920769.6083095
+      },
+      "seq_num": 14,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "1fba101a-0775-4f96-b913-d648f69154a2",
+      "time": 1756920770.029493,
+      "data": {
+        "det": 0.9231163463866358,
+        "motor": 0.40000000000000013,
+        "motor_setpoint": 0.40000000000000013
+      },
+      "timestamps": {
+        "det": 1756920770.0235238,
+        "motor": 1756920770.0216043,
+        "motor_setpoint": 1756920769.8206449
+      },
+      "seq_num": 15,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "347979b2-124d-457a-a197-5e12c15dbb44",
+      "time": 1756920770.2420285,
+      "data": {
+        "det": 0.8824969025845955,
+        "motor": 0.5,
+        "motor_setpoint": 0.5
+      },
+      "timestamps": {
+        "det": 1756920770.2348378,
+        "motor": 1756920770.2317836,
+        "motor_setpoint": 1756920770.0311458
+      },
+      "seq_num": 16,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "a4b65ef4-ad62-401a-8d67-e4d4c8f37b3f",
+      "time": 1756920770.4540424,
+      "data": {
+        "det": 0.835270211411272,
+        "motor": 0.6000000000000001,
+        "motor_setpoint": 0.6000000000000001
+      },
+      "timestamps": {
+        "det": 1756920770.4477174,
+        "motor": 1756920770.4440043,
+        "motor_setpoint": 1756920770.2434404
+      },
+      "seq_num": 17,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "6c709083-7778-4ea8-8d7e-b95738b5fe2c",
+      "time": 1756920770.6668565,
+      "data": {
+        "det": 0.782704538241868,
+        "motor": 0.7000000000000002,
+        "motor_setpoint": 0.7000000000000002
+      },
+      "timestamps": {
+        "det": 1756920770.6601088,
+        "motor": 1756920770.6558797,
+        "motor_setpoint": 1756920770.4553044
+      },
+      "seq_num": 18,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "446f6b8d-e276-4450-8551-d3bcdb78a685",
+      "time": 1756920770.8796997,
+      "data": {
+        "det": 0.7261490370736908,
+        "motor": 0.8,
+        "motor_setpoint": 0.8
+      },
+      "timestamps": {
+        "det": 1756920770.8732703,
+        "motor": 1756920770.870794,
+        "motor_setpoint": 1756920770.6701288
+      },
+      "seq_num": 19,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "9f4ea68e-ece1-4dc1-8156-c5fad4973903",
+      "time": 1756920771.0926526,
+      "data": {
+        "det": 0.6669768108584743,
+        "motor": 0.9000000000000001,
+        "motor_setpoint": 0.9000000000000001
+      },
+      "timestamps": {
+        "det": 1756920771.0858636,
+        "motor": 1756920771.0827677,
+        "motor_setpoint": 1756920770.8821943
+      },
+      "seq_num": 20,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "48de9968-1ce1-473e-890f-57354554fdba",
+      "time": 1756920771.3046138,
+      "data": {
+        "det": 0.6065306597126334,
+        "motor": 1.0,
+        "motor_setpoint": 1.0
+      },
+      "timestamps": {
+        "det": 1756920771.2976727,
+        "motor": 1756920771.2951293,
+        "motor_setpoint": 1756920771.0946052
+      },
+      "seq_num": 21,
+      "filled": {},
+      "descriptor": "a8e7fe23-029e-407d-9ad6-48d44337ce53",
+      "document_type": "event"
+    }
+  ],
+  [
+    "stop",
+    {
+      "uid": "671d02b0-4f53-4379-9a97-5b0eedc0f831",
+      "time": 1756920771.3058891,
+      "run_start": "17181732-6f2f-4af4-8a68-61a13c68c364",
+      "exit_status": "success",
+      "reason": "",
+      "num_events": {
+        "primary": 21
+      },
+      "document_type": "stop"
+    }
+  ]
+]

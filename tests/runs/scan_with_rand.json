@@ -1,0 +1,397 @@
+[
+  [
+    "start",
+    {
+      "uid": "343803e6-d9a3-484f-ab0d-3e569376e2c1",
+      "time": 1756920450.7154202,
+      "versions": {
+        "ophyd": "1.10.5",
+        "bluesky": "1.14.0"
+      },
+      "scan_id": 4,
+      "plan_type": "generator",
+      "plan_name": "scan",
+      "detectors": [
+        "rand"
+      ],
+      "motors": [
+        "motor"
+      ],
+      "num_points": 11,
+      "num_intervals": 10,
+      "plan_args": {
+        "detectors": [
+          "SynPeriodicSignal(name='rand', value=0.7010331251134615, timestamp=1756920449.4237819)"
+        ],
+        "num": 11,
+        "args": [
+          "SynAxis(prefix='', name='motor', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration'])",
+          -1.0,
+          1.0
+        ],
+        "per_step": "None"
+      },
+      "hints": {
+        "dimensions": [
+          [
+            [
+              "motor"
+            ],
+            "primary"
+          ]
+        ]
+      },
+      "plan_pattern": "inner_product",
+      "plan_pattern_module": "bluesky.plan_patterns",
+      "plan_pattern_args": {
+        "num": 11,
+        "args": [
+          "SynAxis(prefix='', name='motor', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration'])",
+          -1.0,
+          1.0
+        ]
+      },
+      "metadata_save_file_location": "/mnt/gluster/common/bluesky/bluesky-config-test/ibira",
+      "document_type": "start"
+    }
+  ],
+  [
+    "descriptor",
+    {
+      "configuration": {
+        "rand": {
+          "data": {
+            "rand": 0.4936862321324156
+          },
+          "timestamps": {
+            "rand": 1756920450.9229298
+          },
+          "data_keys": {
+            "rand": {
+              "source": "SIM:rand",
+              "dtype": "number",
+              "shape": [],
+              "precision": 3
+            }
+          }
+        },
+        "motor": {
+          "data": {
+            "motor_velocity": 1,
+            "motor_acceleration": 1
+          },
+          "timestamps": {
+            "motor_velocity": 1755017196.5346859,
+            "motor_acceleration": 1755017196.5347126
+          },
+          "data_keys": {
+            "motor_velocity": {
+              "source": "SIM:motor_velocity",
+              "dtype": "integer",
+              "shape": []
+            },
+            "motor_acceleration": {
+              "source": "SIM:motor_acceleration",
+              "dtype": "integer",
+              "shape": []
+            }
+          }
+        }
+      },
+      "data_keys": {
+        "rand": {
+          "source": "SIM:rand",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "rand"
+        },
+        "motor": {
+          "source": "SIM:motor",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "motor"
+        },
+        "motor_setpoint": {
+          "source": "SIM:motor_setpoint",
+          "dtype": "number",
+          "shape": [],
+          "precision": 3,
+          "object_name": "motor"
+        }
+      },
+      "name": "primary",
+      "object_keys": {
+        "rand": [
+          "rand"
+        ],
+        "motor": [
+          "motor",
+          "motor_setpoint"
+        ]
+      },
+      "run_start": "343803e6-d9a3-484f-ab0d-3e569376e2c1",
+      "time": 1756920450.9304507,
+      "uid": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "hints": {
+        "rand": {
+          "fields": [
+            "rand"
+          ]
+        },
+        "motor": {
+          "fields": [
+            "motor"
+          ]
+        }
+      },
+      "document_type": "descriptor"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "09a40d84-4ce6-4ee3-8464-b63996acaf6a",
+      "time": 1756920450.9350817,
+      "data": {
+        "rand": 0.4936862321324156,
+        "motor": -1.0,
+        "motor_setpoint": -1.0
+      },
+      "timestamps": {
+        "rand": 1756920450.9229298,
+        "motor": 1756920450.9202476,
+        "motor_setpoint": 1756920450.7195406
+      },
+      "seq_num": 1,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "287a0143-fe12-4aea-884f-298ebe27feaa",
+      "time": 1756920451.145848,
+      "data": {
+        "rand": 0.8557159980078644,
+        "motor": -0.8,
+        "motor_setpoint": -0.8
+      },
+      "timestamps": {
+        "rand": 1756920451.1391828,
+        "motor": 1756920451.1368837,
+        "motor_setpoint": 1756920450.9363515
+      },
+      "seq_num": 2,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "ca6b59e2-f54f-4ff1-aeb0-a50e1dd30270",
+      "time": 1756920451.3561342,
+      "data": {
+        "rand": 0.23521713989217674,
+        "motor": -0.6,
+        "motor_setpoint": -0.6
+      },
+      "timestamps": {
+        "rand": 1756920451.3516695,
+        "motor": 1756920451.3489807,
+        "motor_setpoint": 1756920451.1481879
+      },
+      "seq_num": 3,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "8b57c802-53f7-4315-b6fe-687914374f33",
+      "time": 1756920451.5631757,
+      "data": {
+        "rand": 0.1292685533483373,
+        "motor": -0.3999999999999999,
+        "motor_setpoint": -0.3999999999999999
+      },
+      "timestamps": {
+        "rand": 1756920451.5594404,
+        "motor": 1756920451.5580962,
+        "motor_setpoint": 1756920451.3575685
+      },
+      "seq_num": 4,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "fc2af716-4316-4789-ac73-20f18ca230a6",
+      "time": 1756920451.7711227,
+      "data": {
+        "rand": 0.15178900472913215,
+        "motor": -0.19999999999999996,
+        "motor_setpoint": -0.19999999999999996
+      },
+      "timestamps": {
+        "rand": 1756920451.767508,
+        "motor": 1756920451.7662635,
+        "motor_setpoint": 1756920451.5654883
+      },
+      "seq_num": 5,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "4a680efc-bab6-4809-9262-7892ed418f3f",
+      "time": 1756920451.9835713,
+      "data": {
+        "rand": 0.4260267051719365,
+        "motor": 0.0,
+        "motor_setpoint": 0.0
+      },
+      "timestamps": {
+        "rand": 1756920451.9772856,
+        "motor": 1756920451.9747825,
+        "motor_setpoint": 1756920451.7738237
+      },
+      "seq_num": 6,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "94898810-7a8a-49f9-836d-bd7ce030c8a4",
+      "time": 1756920452.1948574,
+      "data": {
+        "rand": 0.7675860815181184,
+        "motor": 0.20000000000000018,
+        "motor_setpoint": 0.20000000000000018
+      },
+      "timestamps": {
+        "rand": 1756920452.1896393,
+        "motor": 1756920452.186619,
+        "motor_setpoint": 1756920451.986083
+      },
+      "seq_num": 7,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "9bb16260-9525-4036-abe8-16877b3021ea",
+      "time": 1756920452.4067352,
+      "data": {
+        "rand": 0.3438940474787092,
+        "motor": 0.40000000000000013,
+        "motor_setpoint": 0.40000000000000013
+      },
+      "timestamps": {
+        "rand": 1756920452.4003172,
+        "motor": 1756920452.3975587,
+        "motor_setpoint": 1756920452.1967402
+      },
+      "seq_num": 8,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "e49d0c0e-0338-4adf-96a1-7e2a2736d4c8",
+      "time": 1756920452.618947,
+      "data": {
+        "rand": 0.983439535191297,
+        "motor": 0.6000000000000001,
+        "motor_setpoint": 0.6000000000000001
+      },
+      "timestamps": {
+        "rand": 1756920452.6126618,
+        "motor": 1756920452.6102676,
+        "motor_setpoint": 1756920452.4094505
+      },
+      "seq_num": 9,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "f5993164-cc21-4680-97e8-a963728ac654",
+      "time": 1756920452.8287022,
+      "data": {
+        "rand": 0.8440310087939803,
+        "motor": 0.8,
+        "motor_setpoint": 0.8
+      },
+      "timestamps": {
+        "rand": 1756920452.8237305,
+        "motor": 1756920452.82226,
+        "motor_setpoint": 1756920452.6216047
+      },
+      "seq_num": 10,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "event",
+    {
+      "uid": "235d2cc0-2706-4cf3-b263-edac62f6618b",
+      "time": 1756920453.0403702,
+      "data": {
+        "rand": 0.42047848577212243,
+        "motor": 1.0,
+        "motor_setpoint": 1.0
+      },
+      "timestamps": {
+        "rand": 1756920453.0336037,
+        "motor": 1756920453.0310163,
+        "motor_setpoint": 1756920452.8303552
+      },
+      "seq_num": 11,
+      "filled": {},
+      "descriptor": "5a3dc272-34e4-4ea6-be7d-eebae2912668",
+      "document_type": "event"
+    }
+  ],
+  [
+    "stop",
+    {
+      "uid": "d2fc338c-79f6-47e7-8ed0-5f695bd5e673",
+      "time": 1756920453.0418801,
+      "run_start": "343803e6-d9a3-484f-ab0d-3e569376e2c1",
+      "exit_status": "success",
+      "reason": "",
+      "num_events": {
+        "primary": 11
+      },
+      "document_type": "stop"
+    }
+  ]
+]
