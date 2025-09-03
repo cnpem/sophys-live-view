@@ -1,9 +1,8 @@
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QApplication, QMainWindow, QSplitter, QTabWidget
+from qtpy.QtWidgets import QApplication, QMainWindow, QSplitter
 
 from ..utils.data_source_manager import DataSourceManager
 from .metadata_viewer import MetadataViewer
-from .plot_configuration import PlotConfiguration
 from .plot_display import PlotDisplay
 from .run_selector import RunSelector
 from .signal_selector import SignalSelector
@@ -21,7 +20,6 @@ class SophysLiveView(QMainWindow):
         self.metadata_viewer = MetadataViewer(
             self.data_source_manager, self.run_selector.selected_streams_changed
         )
-        self.plot_configuration = PlotConfiguration(self)
         self.signal_selector = SignalSelector(
             self.data_source_manager, self.run_selector.selected_streams_changed
         )
@@ -53,10 +51,7 @@ class SophysLiveView(QMainWindow):
         main_display_splitter.setSizes([1, 4])
 
         controls_display_splitter.addWidget(self.metadata_viewer)
-        plot_settings_widget = QTabWidget()
-        plot_settings_widget.addTab(self.signal_selector, "Signals")
-        plot_settings_widget.addTab(self.plot_configuration, "Configuration")
-        controls_display_splitter.addWidget(plot_settings_widget)
+        controls_display_splitter.addWidget(self.signal_selector)
         controls_display_splitter.setSizes([1, 3])
 
         self.setCentralWidget(vertical_splitter)
