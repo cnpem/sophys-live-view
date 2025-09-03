@@ -22,11 +22,9 @@ class PlotDisplay(QStackedWidget):
         self._1d_x_axis_names = defaultdict(lambda: "")
         self._1d_y_axis_names = defaultdict(lambda: set())
 
-        self._2d_scatter_x_axis_names = defaultdict(lambda: set())
-        self._2d_scatter_y_axis_names = defaultdict(lambda: set())
-
-        self._2d_grid_x_axis_names = defaultdict(lambda: set())
-        self._2d_grid_y_axis_names = defaultdict(lambda: set())
+        self._2d_x_axis_names = defaultdict(lambda: "")
+        self._2d_y_axis_names = defaultdict(lambda: "")
+        self._2d_z_axis_names = defaultdict(lambda: set())
 
         standby_label = QLabel("Waiting for a run to be selected...")
         standby_label.setAlignment(
@@ -48,6 +46,12 @@ class PlotDisplay(QStackedWidget):
         self._parent.data_source_manager.new_data_stream.connect(self._on_new_stream)
         self._parent.data_source_manager.new_data_received.connect(
             self._receive_new_data
+        )
+        self._parent.signal_selector.selected_signals_changed_1d.connect(
+            self._on_1d_signals_changed
+        )
+        self._parent.signal_selector.selected_signals_changed_2d.connect(
+            self._on_2d_signals_changed
         )
 
         self._plots.currentChanged.connect(self._on_plot_tab_changed)
@@ -79,7 +83,7 @@ class PlotDisplay(QStackedWidget):
                 self._configure_1d_tab(uid, stream_name, detector_name, 0)
 
             for detector_name in self._data_cache[uid]:
-                if detector_name not in self._2d_scatter_y_axis_names[uid]:
+                if detector_name not in self._2d_z_axis_names[uid]:
                     continue
 
                 if not self._plots.widget(1).isVisible():
@@ -88,49 +92,13 @@ class PlotDisplay(QStackedWidget):
                 self._configure_2d_scatter_tab(uid, stream_name, detector_name, 1)
 
             for detector_name in self._data_cache[uid]:
-                if detector_name not in self._2d_grid_y_axis_names[uid]:
+                if detector_name not in self._2d_z_axis_names[uid]:
                     continue
 
                 if not self._plots.widget(2).isVisible():
                     continue
 
                 self._configure_2d_grid_tab(uid, stream_name, detector_name, 2)
-
-    def get_1d_x_axis_name(self, uid: str):
-        return self._1d_x_axis_names[uid]
-
-    def configure_1d_x_axis_name(self, uid: str, x_axis_name: str):
-        self._1d_x_axis_names[uid] = x_axis_name
-
-    def get_1d_y_axis_names(self, uid: str):
-        return self._1d_y_axis_names[uid]
-
-    def configure_1d_y_axis_names(self, uid: str, y_axis_names: set[str]):
-        self._1d_y_axis_names[uid] = y_axis_names
-
-    def get_2d_scatter_x_axis_names(self, uid: str):
-        return self._2d_scatter_x_axis_names[uid]
-
-    def configure_2d_scatter_x_axis_names(self, uid: str, x_axis_name: str):
-        self._2d_scatter_x_axis_names[uid] = x_axis_name
-
-    def get_2d_scatter_y_axis_names(self, uid: str):
-        return self._2d_scatter_y_axis_names[uid]
-
-    def configure_2d_scatter_y_axis_names(self, uid: str, y_axis_names: set[str]):
-        self._2d_scatter_y_axis_names[uid] = y_axis_names
-
-    def get_2d_grid_x_axis_names(self, uid: str):
-        return self._2d_grid_x_axis_names[uid]
-
-    def configure_2d_grid_x_axis_names(self, uid: str, x_axis_name: str):
-        self._2d_grid_x_axis_names[uid] = x_axis_name
-
-    def get_2d_grid_y_axis_names(self, uid: str):
-        return self._2d_grid_y_axis_names[uid]
-
-    def configure_2d_grid_y_axis_names(self, uid: str, y_axis_names: set[str]):
-        self._2d_grid_y_axis_names[uid] = y_axis_names
 
     def _on_new_stream(
         self,
@@ -180,12 +148,13 @@ class PlotDisplay(QStackedWidget):
     def _configure_2d_scatter_tab(
         self, uid: str, stream_name: str, detector_name: str, tab_index: int
     ):
-        independent_axis_fields = list(self._2d_scatter_x_axis_names[uid])
-        if len(independent_axis_fields) < 2:
+        x_axis_signal = self._2d_x_axis_names[uid]
+        y_axis_signal = self._2d_y_axis_names[uid]
+        if x_axis_signal == "" or y_axis_signal == "":
             return
 
-        x_axis_data = self._data_cache[uid][independent_axis_fields[0]]
-        y_axis_data = self._data_cache[uid][independent_axis_fields[1]]
+        x_axis_data = self._data_cache[uid][x_axis_signal]
+        y_axis_data = self._data_cache[uid][y_axis_signal]
         cached_data = self._data_cache[uid][detector_name]
 
         if len(cached_data.shape) > 1:
@@ -202,8 +171,9 @@ class PlotDisplay(QStackedWidget):
     def _configure_2d_grid_tab(
         self, uid: str, stream_name: str, detector_name: str, tab_index: int
     ):
-        independent_axis_fields = list(self._2d_grid_x_axis_names[uid])
-        if len(independent_axis_fields) < 2:
+        x_axis_signal = self._2d_x_axis_names[uid]
+        y_axis_signal = self._2d_y_axis_names[uid]
+        if x_axis_signal == "" or y_axis_signal == "":
             return
 
         cached_data = self._data_cache[uid][detector_name]
@@ -227,5 +197,20 @@ class PlotDisplay(QStackedWidget):
 
     def _on_plot_tab_changed(self, new_index: int):
         self.plot_tab_changed.emit(self._plots.tabText(new_index))
+
+        self.update_plots()
+
+    def _on_1d_signals_changed(self, x_signal: str, y_signals: set[str]):
+        for uid, _ in self._current_uids:
+            self._1d_x_axis_names[uid] = x_signal
+            self._1d_y_axis_names[uid] = y_signals
+
+        self.update_plots()
+
+    def _on_2d_signals_changed(self, x_signal: str, y_signal: str, z_signals: set[str]):
+        for uid, _ in self._current_uids:
+            self._2d_x_axis_names[uid] = x_signal
+            self._2d_y_axis_names[uid] = y_signal
+            self._2d_z_axis_names[uid] = z_signals
 
         self.update_plots()

@@ -17,11 +17,15 @@ class SophysLiveView(QMainWindow):
 
         self.data_source_manager = DataSourceManager()
 
+        self.run_selector = RunSelector(self)
         self.metadata_viewer = MetadataViewer(self)
         self.plot_configuration = PlotConfiguration(self)
-        self.plot_display = PlotDisplay(self)
-        self.run_selector = RunSelector(self)
         self.signal_selector = SignalSelector(self)
+        self.plot_display = PlotDisplay(self)
+
+        self.signal_selector.set_plot_tab_changed_signal(
+            self.plot_display.plot_tab_changed
+        )
 
         vertical_splitter = QSplitter(Qt.Orientation.Vertical)
         vertical_splitter.setHandleWidth(10)
