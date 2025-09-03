@@ -106,4 +106,3 @@ class RunSelector(QWidget):
 
         data_source = JSONDataSource(file_name)
         self._data_source_manager.add_data_source(data_source)
-        data_source.start_thread()
