@@ -1,3 +1,5 @@
+from importlib.metadata import version
+
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication, QMainWindow, QSplitter
 
@@ -13,6 +15,9 @@ class SophysLiveView(QMainWindow):
         super().__init__(parent, **kwargs)
 
         self.resize(1200, 800)
+        self.setWindowTitle(
+            "sophys-live-view - version {}".format(version("sophys-live-view"))
+        )
 
         self.data_source_manager = DataSourceManager()
 
