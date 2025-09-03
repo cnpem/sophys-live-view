@@ -97,12 +97,13 @@ class RunSelector(QWidget):
         self._go_to_last_automatically = state
 
     def _import_file(self):
-        file_name, selected_filter = QFileDialog.getOpenFileName(
+        file_names, selected_filter = QFileDialog.getOpenFileNames(
             caption="Select a file to load into sophys-live-view.",
             filter="JSON (*.json)",
         )
-        if file_name == "":
+        if len(file_names) == 0:
             return
 
-        data_source = JSONDataSource(file_name)
-        self._data_source_manager.add_data_source(data_source)
+        for file_name in file_names:
+            data_source = JSONDataSource(file_name)
+            self._data_source_manager.add_data_source(data_source)
