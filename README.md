@@ -1,7 +1,8 @@
 # Sophys Live View
 
-![PyDM](https://img.shields.io/badge/PyDM-GUI-blue.svg)
-Live data visualization interface
+Live data visualization interface for usage in Bluesky-based systems.
+
+![Overview of the interface](./images/overview.png)
 
 ## 📦 Installation
 ```sh
