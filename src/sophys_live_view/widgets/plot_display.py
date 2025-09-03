@@ -214,13 +214,17 @@ class PlotDisplay(QStackedWidget):
         cached_data = self._data_aggregator.get_data(uid, detector_name)
         _metadata = self._data_aggregator.get_metadata(uid)
 
-        shape = _metadata.get("shape", (0, 0))
+        shape = tuple(_metadata.get("shape", (0, 0)))
         extents = _metadata.get("extents", ((0, 0), (0, 0)))
         scale = (
             (extents[1][1] - extents[1][0]) / (shape[1] - 1),
             (extents[0][1] - extents[0][0]) / (shape[0] - 1),
         )
         origin = (extents[1][0] - scale[0] / 2, extents[0][0] - scale[1] / 2)
+
+        # Probably trying to plot 1D data in a 2D plot
+        if cached_data.shape != shape:
+            return
 
         plot_widget = self._plots.widget(tab_index)
         plot_widget.addImage(
