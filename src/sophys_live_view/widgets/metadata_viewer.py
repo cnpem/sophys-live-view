@@ -2,14 +2,13 @@ from qtpy.QtWidgets import QHeaderView, QTableWidget, QTableWidgetItem, QTabWidg
 
 
 class MetadataViewer(QTabWidget):
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-
-        self._parent = parent
+    def __init__(self, data_source_manager, change_stream_signal):
+        super().__init__()
 
         self._stream_metadata = dict()
 
-        self._parent.data_source_manager.new_data_stream.connect(self._add_new_stream)
+        data_source_manager.new_data_stream.connect(self._add_new_stream)
+        change_stream_signal.connect(self.change_current_streams)
 
     def change_current_streams(self, new_uids_and_names: list[tuple[str, str]]):
         self.clear()

@@ -18,10 +18,8 @@ class SignalSelector(QWidget):
     selected_signals_changed_1d = Signal(str, set)  # X, Y
     selected_signals_changed_2d = Signal(str, str, set)  # X, Y, Z
 
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-
-        self._parent = parent
+    def __init__(self, data_source_manager, change_stream_signal: Signal):
+        super().__init__()
 
         self._signals = dict()
         self.uids_with_signal = defaultdict(lambda: set())
@@ -49,7 +47,8 @@ class SignalSelector(QWidget):
         )
         self._signal_selection_stack.addWidget(self._2d_signal_selection_table)
 
-        self._parent.data_source_manager.new_data_stream.connect(self._add_new_signal)
+        data_source_manager.new_data_stream.connect(self._add_new_signal)
+        change_stream_signal.connect(self.change_current_streams)
 
     def set_plot_tab_changed_signal(self, signal: Signal):
         signal.connect(self._change_tab)

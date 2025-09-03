@@ -13,12 +13,14 @@ from ..utils.json_data_source import JSONDataSource
 
 
 class RunSelector(QWidget):
+    selected_streams_changed = Signal(list)  # List of (uid, stream name)
+
     select_item = Signal(QListWidgetItem)
 
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, data_source_manager):
+        super().__init__()
 
-        self._parent = parent
+        self._data_source_manager = data_source_manager
 
         self._go_to_last_automatically = True
 
@@ -33,10 +35,8 @@ class RunSelector(QWidget):
         self._file_import_button.clicked.connect(self._import_file)
         layout.addWidget(self._file_import_button)
 
-        self._parent.data_source_manager.new_data_stream.connect(self._add_stream)
-        self._parent.data_source_manager.go_to_last_automatically.connect(
-            self._set_go_to_last
-        )
+        data_source_manager.new_data_stream.connect(self._add_stream)
+        data_source_manager.go_to_last_automatically.connect(self._set_go_to_last)
         self._run_list.itemSelectionChanged.connect(self.change_current_streams)
         self._run_list.itemDoubleClicked.connect(self.toggle_bookmark)
 
@@ -48,12 +48,13 @@ class RunSelector(QWidget):
         self.star_filled_icon = qta.icon("fa6s.star", color="orange", scale_factor=0.8)
 
     def change_current_streams(self):
-        current_uids = []
+        current_streams = []
         for item in self._run_list.selectedItems():
-            current_uids.append((item.data(Qt.ItemDataRole.UserRole + 1), item.text()))
-        self._parent.plot_display.change_current_streams(current_uids)
-        self._parent.signal_selector.change_current_streams(current_uids)
-        self._parent.metadata_viewer.change_current_streams(current_uids)
+            current_streams.append(
+                (item.data(Qt.ItemDataRole.UserRole + 1), item.text())
+            )
+
+        self.selected_streams_changed.emit(current_streams)
 
     def _add_stream(
         self,
@@ -104,5 +105,5 @@ class RunSelector(QWidget):
             return
 
         data_source = JSONDataSource(file_name)
-        self._parent.data_source_manager.add_data_source(data_source)
+        self._data_source_manager.add_data_source(data_source)
         data_source.start_thread()

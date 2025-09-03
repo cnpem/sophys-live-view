@@ -17,11 +17,20 @@ class SophysLiveView(QMainWindow):
 
         self.data_source_manager = DataSourceManager()
 
-        self.run_selector = RunSelector(self)
-        self.metadata_viewer = MetadataViewer(self)
+        self.run_selector = RunSelector(self.data_source_manager)
+        self.metadata_viewer = MetadataViewer(
+            self.data_source_manager, self.run_selector.selected_streams_changed
+        )
         self.plot_configuration = PlotConfiguration(self)
-        self.signal_selector = SignalSelector(self)
-        self.plot_display = PlotDisplay(self)
+        self.signal_selector = SignalSelector(
+            self.data_source_manager, self.run_selector.selected_streams_changed
+        )
+        self.plot_display = PlotDisplay(
+            self.data_source_manager,
+            self.run_selector.selected_streams_changed,
+            self.signal_selector.selected_signals_changed_1d,
+            self.signal_selector.selected_signals_changed_2d,
+        )
 
         self.signal_selector.set_plot_tab_changed_signal(
             self.plot_display.plot_tab_changed

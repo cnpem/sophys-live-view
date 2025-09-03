@@ -60,10 +60,14 @@ class DataAggregator(QObject):
 class PlotDisplay(QStackedWidget):
     plot_tab_changed = Signal(str)  # new tab name
 
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-
-        self._parent = parent
+    def __init__(
+        self,
+        data_source_manager,
+        change_stream_signal: Signal,
+        selected_signals_changed_1d: Signal,
+        selected_signals_changed_2d: Signal,
+    ):
+        super().__init__()
 
         self._current_uids = [("", "")]
 
@@ -95,16 +99,20 @@ class PlotDisplay(QStackedWidget):
         self.addWidget(self._plots)
 
         self._data_aggregator = DataAggregator(
-            self._parent.data_source_manager.new_data_stream,
-            self._parent.data_source_manager.new_data_received,
+            data_source_manager.new_data_stream,
+            data_source_manager.new_data_received,
         )
         self._data_aggregator.new_data_received.connect(self.update_plots)
 
-        self._parent.signal_selector.selected_signals_changed_1d.connect(
-            self._on_1d_signals_changed
+        # NOTE: Here we have kind of a race condition: We need the change_stream_signal
+        # connection, but it must happen before the other ones, so that the signal selector
+        # signals update the plots with the correct information.
+        change_stream_signal.connect(self.change_current_streams)
+        selected_signals_changed_1d.connect(
+            self._on_1d_signals_changed, Qt.ConnectionType.QueuedConnection
         )
-        self._parent.signal_selector.selected_signals_changed_2d.connect(
-            self._on_2d_signals_changed
+        selected_signals_changed_2d.connect(
+            self._on_2d_signals_changed, Qt.ConnectionType.QueuedConnection
         )
 
         self._plots.currentChanged.connect(self._on_plot_tab_changed)
