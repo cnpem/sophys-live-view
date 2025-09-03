@@ -13,6 +13,10 @@ dependencies = [
     "silx",
     "event_model",
     "qtawesome",
+    "kafka-python",
+    "msgpack",
+    "python-dateutil",
+    "matplotlib",
 ]
 dynamic = ["version"]
 readme = "README.md"

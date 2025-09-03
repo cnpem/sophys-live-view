@@ -19,7 +19,7 @@ pip install .
 Run your gui
 
 ```sh
-sophys_live_view ""
+sophys_live_view
 
 ```
 
