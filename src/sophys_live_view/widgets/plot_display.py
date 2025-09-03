@@ -202,6 +202,7 @@ class PlotDisplay(QStackedWidget):
             cached_data,
             legend=detector_name + " - " + stream_name + " - " + uid,
         )
+        plot_widget.resetZoom()
 
     def _configure_2d_grid_tab(
         self, uid: str, stream_name: str, detector_name: str, tab_index: int
@@ -232,7 +233,7 @@ class PlotDisplay(QStackedWidget):
             origin=origin,
             scale=scale,
             legend=detector_name + " - " + stream_name + " - " + uid,
-            resetzoom=False,
+            resetzoom=True,
         )
 
     def _on_plot_tab_changed(self, new_index: int):
