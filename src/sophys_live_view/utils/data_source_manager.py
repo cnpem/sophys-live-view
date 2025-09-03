@@ -1,7 +1,6 @@
 from threading import Lock
 import uuid
 
-import numpy as np
 from qtpy.QtCore import QThread, Signal
 
 from .data_source import DataSource
@@ -53,85 +52,6 @@ class DataSourceManager(QThread):
         # Here we should pull from data sources which do not provide us with asynchronous data.
 
         with self._data_sources_lock:
-            data_source_uid = str(uuid.uuid4())
-
-            uid = str(uuid.uuid4())
-            self.new_data_stream.emit(
-                data_source_uid,
-                uid,
-                "abc",
-                {"timestamp", "det"},
-                {"det"},
-                {"timestamp"},
-                {"uid": uid},
-            )
-            self.new_data_received.emit(
-                data_source_uid,
-                uid,
-                {"timestamp": np.array([1, 2, 3]), "det": np.array([1, 2, 3])},
-                {},
-            )
-            self.new_data_received.emit(
-                data_source_uid,
-                uid,
-                {"timestamp": np.array([4, 5, 6]), "det": np.array([5, 6, 7])},
-                {},
-            )
-
-            uid = str(uuid.uuid4())
-            self.new_data_stream.emit(
-                data_source_uid,
-                uid,
-                "def",
-                {"timestamp", "det"},
-                {"det"},
-                {"timestamp"},
-                {"uid": uid},
-            )
-            self.new_data_received.emit(
-                data_source_uid,
-                uid,
-                {"timestamp": np.array([1, 2, 3]), "det": np.array([2, 2, 3])},
-                {},
-            )
-            self.new_data_received.emit(
-                data_source_uid,
-                uid,
-                {"timestamp": np.array([4, 5, 6]), "det": np.array([5, 6, 6])},
-                {},
-            )
-
-            uid = str(uuid.uuid4())
-            self.new_data_stream.emit(
-                data_source_uid,
-                uid,
-                "ghi",
-                {"timestamp", "det", "det2"},
-                {"det2"},
-                {"timestamp"},
-                {"uid": uid},
-            )
-            self.new_data_received.emit(
-                data_source_uid,
-                uid,
-                {
-                    "timestamp": np.array([1, 2, 3]),
-                    "det": np.array([2, 1, 3]),
-                    "det2": np.array([9, 8, 7]),
-                },
-                {},
-            )
-            self.new_data_received.emit(
-                data_source_uid,
-                uid,
-                {
-                    "timestamp": np.array([4, 5, 6]),
-                    "det": np.array([5, 9, 6]),
-                    "det2": np.array([1, 2, 3]),
-                },
-                {},
-            )
-
             for data_source in self._data_sources:
                 if hasattr(data_source, "start_thread"):
                     data_source.start_thread()
