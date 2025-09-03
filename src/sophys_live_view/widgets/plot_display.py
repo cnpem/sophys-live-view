@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import numpy as np
 from qtpy.QtCore import QObject, Qt, Signal
-from qtpy.QtWidgets import QLabel, QStackedWidget, QTabWidget
+from qtpy.QtWidgets import QLabel, QStackedWidget, QTabWidget, QVBoxLayout, QWidget
 from silx.gui.colors import Colormap
 from silx.gui.plot.PlotWindow import Plot1D, Plot2D
 
@@ -57,7 +57,7 @@ class DataAggregator(QObject):
         self.new_data_received.emit()
 
 
-class PlotDisplay(QStackedWidget):
+class PlotDisplay(QWidget):
     plot_tab_changed = Signal(str)  # new tab name
 
     def __init__(
@@ -78,11 +78,16 @@ class PlotDisplay(QStackedWidget):
         self._2d_y_axis_names = defaultdict(lambda: "")
         self._2d_z_axis_names = defaultdict(lambda: set())
 
+        layout = QVBoxLayout()
+        self._stacked_widget = QStackedWidget()
+        layout.addWidget(self._stacked_widget)
+        self.setLayout(layout)
+
         standby_label = QLabel("Waiting for a run to be selected...")
         standby_label.setAlignment(
             Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
         )
-        self.addWidget(standby_label)
+        self._stacked_widget.addWidget(standby_label)
 
         self._plots = QTabWidget()
         _plot_1d = Plot1D()
@@ -96,7 +101,7 @@ class PlotDisplay(QStackedWidget):
         _plot_2d_grid.setDefaultColormap(Colormap(name="viridis"))
         self._plots.addTab(_plot_2d_grid, "2D - Grid")
 
-        self.addWidget(self._plots)
+        self._stacked_widget.addWidget(self._plots)
 
         self._data_aggregator = DataAggregator(
             data_source_manager.new_data_stream,
@@ -124,7 +129,7 @@ class PlotDisplay(QStackedWidget):
         self._current_uids = new_uids_and_names
 
         if len(new_uids_and_names) == 1 and new_uids_and_names[0][0] == "":
-            self.setCurrentIndex(0)
+            self._stacked_widget.setCurrentIndex(0)
             return
 
         self._plots.widget(0).clear()
@@ -132,7 +137,7 @@ class PlotDisplay(QStackedWidget):
         self._plots.widget(2).clear()
 
         for uid, stream_name in new_uids_and_names:
-            self.setCurrentWidget(self._plots)
+            self._stacked_widget.setCurrentWidget(self._plots)
 
             signals = self._data_aggregator.get_signals(uid)
 

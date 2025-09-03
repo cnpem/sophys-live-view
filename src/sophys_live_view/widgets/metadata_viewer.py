@@ -1,17 +1,29 @@
-from qtpy.QtWidgets import QHeaderView, QTableWidget, QTableWidgetItem, QTabWidget
+from qtpy.QtWidgets import (
+    QHeaderView,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 
-class MetadataViewer(QTabWidget):
+class MetadataViewer(QWidget):
     def __init__(self, data_source_manager, change_stream_signal):
         super().__init__()
 
         self._stream_metadata = dict()
 
+        layout = QVBoxLayout()
+        self._tab = QTabWidget()
+        layout.addWidget(self._tab)
+        self.setLayout(layout)
+
         data_source_manager.new_data_stream.connect(self._add_new_stream)
         change_stream_signal.connect(self.change_current_streams)
 
     def change_current_streams(self, new_uids_and_names: list[tuple[str, str]]):
-        self.clear()
+        self._tab.clear()
 
         for uid, name in new_uids_and_names:
             metadata_page = QTableWidget(columnCount=2)
@@ -31,7 +43,7 @@ class MetadataViewer(QTabWidget):
                 metadata_page.setItem(index, 0, key_item)
                 metadata_page.setItem(index, 1, value_item)
 
-            self.addTab(metadata_page, name)
+            self._tab.addTab(metadata_page, name)
 
     def _add_new_stream(
         self,
