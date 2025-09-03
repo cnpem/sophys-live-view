@@ -130,7 +130,8 @@ class PlotDisplay(QStackedWidget):
     def _configure_1d_tab(
         self, uid: str, stream_name: str, detector_name: str, tab_index: int
     ):
-        x_axis_data = self._data_cache[uid].get(self._1d_x_axis_names[uid], None)
+        x_axis_signal = self._1d_x_axis_names[uid]
+        x_axis_data = self._data_cache[uid].get(x_axis_signal, None)
         if x_axis_data is None:
             return
         cached_data = self._data_cache[uid][detector_name]
@@ -139,9 +140,11 @@ class PlotDisplay(QStackedWidget):
             cached_data = np.trim_zeros(cached_data.flatten())
 
         plot_widget = self._plots.widget(tab_index)
+        plot_widget.getXAxis().setLabel(x_axis_signal)
         plot_widget.addCurve(
             x_axis_data,
             cached_data,
+            ylabel=detector_name,
             legend=detector_name + " - " + stream_name + " - " + uid,
         )
 
@@ -161,6 +164,8 @@ class PlotDisplay(QStackedWidget):
             cached_data = np.trim_zeros(cached_data.flatten())
 
         plot_widget = self._plots.widget(tab_index)
+        plot_widget.getXAxis().setLabel(x_axis_signal)
+        plot_widget.getYAxis().setLabel(y_axis_signal)
         plot_widget.addScatter(
             x_axis_data,
             y_axis_data,
