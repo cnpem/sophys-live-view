@@ -38,6 +38,7 @@ class KafkaDataSource(BlueskyDataSource):
             for p in consumer.partitions_for_topic(self._topic_name)
         ]
 
+        start_offset = 0
         if self._hour_offset:
             now = datetime.now(timezone.utc)
             hour_offset = int(
@@ -50,6 +51,7 @@ class KafkaDataSource(BlueskyDataSource):
             for partition, offset_ts in timestamp_offsets.items():
                 if offset_ts is not None:
                     consumer.seek(partition, offset_ts.offset)
+                    start_offset = offset_ts.offset
 
         end_offsets = consumer.end_offsets(all_partitions)
         current_offset = list(end_offsets.values())[0]
@@ -62,6 +64,20 @@ class KafkaDataSource(BlueskyDataSource):
                 self.go_to_last_automatically.emit(done_preloading)
 
                 document_type, document = message.value
+
+                if document_type in ("start", "stop"):
+                    if done_preloading:
+                        completion_percent = 100.0
+                    else:
+                        completion_percent = (
+                            100
+                            * (message.offset - start_offset + 1)
+                            / (current_offset - start_offset)
+                        )
+                    self.loading_status.emit(
+                        "Loading runs from Kafka...", completion_percent
+                    )
+
                 self(document_type, document)
 
     def close_thread(self):

@@ -9,6 +9,7 @@ class DataSource(QThread):
         str, dict, dict
     )  # uid, {signal : data}, {signal : metadata}
     go_to_last_automatically = Signal(bool)  # Whether to auto-update the display or not
+    loading_status = Signal(str, float)  # status message, completion percentage
 
     def start_thread(self):
         """Start processing this DataSource."""

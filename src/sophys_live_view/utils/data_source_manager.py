@@ -18,6 +18,9 @@ class DataSourceManager(QThread):
         str, str, dict, dict
     )  # uid, subuid, {signal : data}, {signal : metadata}
     go_to_last_automatically = Signal(str, bool)  # uid, state
+    loading_status = Signal(
+        str, str, float
+    )  # uid, status message, completion percentage
 
     def __init__(self):
         super().__init__()
@@ -49,6 +52,11 @@ class DataSourceManager(QThread):
             data_source.go_to_last_automatically.connect(
                 go_to_last_automatically_wrapper
             )
+
+            def loading_status_wrapper(*args):
+                self.loading_status.emit(data_source_uid, *args)
+
+            data_source.loading_status.connect(loading_status_wrapper)
 
             self._unvisited_data_sources.add(data_source_uid)
 
