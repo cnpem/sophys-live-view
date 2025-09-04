@@ -13,6 +13,8 @@ class DocumentParser(DocumentRouter):
         display_name = str(doc.get("metadata_save_file_identifier", "unknown"))
         if display_name == "unknown":
             display_name = "scan " + str(doc.get("scan_id", "unknown"))
+            if "plan_name" in doc:
+                display_name += " ({})".format(doc.get("plan_name"))
 
         self.on_new_run_started(display_name, doc)
 
