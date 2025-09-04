@@ -92,6 +92,7 @@ class PlotDisplay(QWidget):
 
         self._plots = QTabWidget()
         _plot_1d = Plot1D()
+        _plot_1d.setDefaultPlotPoints(True)
         self._plots.addTab(_plot_1d, "1D")
 
         if show_stats_by_default:
