@@ -26,8 +26,17 @@ def entrypoint():
         type=float,
         help="Retrieve X hours before the current time from Kafka.",
     )
+    parser.add_argument(
+        "--profile", action="store_true", help="Profile this application with py-spy."
+    )
 
     args = parser.parse_args()
+
+    if args.profile:
+        import os
+        import subprocess
+
+        subprocess.Popen(f"py-spy record -o profile.svg --pid {os.getpid()}".split())
 
     app = QApplication()
 

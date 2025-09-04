@@ -60,6 +60,7 @@ dev = [
     "pytest-qt",
     "faker",
     "ruff",
+    "py-spy",
 ]
 all = [
     "sophys_live_view[dev]"
