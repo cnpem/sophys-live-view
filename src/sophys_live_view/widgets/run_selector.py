@@ -15,6 +15,19 @@ from ..utils.json_data_source import JSONDataSource
 
 
 class RunSelector(QWidget):
+    """
+    Manager for streams, bookmarks (favorites), and creator of new DataSources.
+
+    This class is responsible for handling selection of streams, and propagating
+    that to other parts of the application via its signal. It also handles bookmarks
+    internally and creates new DataSources based on the import criterion.
+
+    Parameters
+    ----------
+    data_source_manager : DataSourceManager
+        The object that will be responsible for handling us the metadata.
+    """
+
     selected_streams_changed = Signal(list)  # List of (uid, stream name)
 
     select_item = Signal(QListWidgetItem)

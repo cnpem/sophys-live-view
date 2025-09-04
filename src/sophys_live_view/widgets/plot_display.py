@@ -11,6 +11,16 @@ class DataAggregator(QObject):
     new_data_received = Signal()
 
     def __init__(self, new_stream_signal: Signal, new_data_signal: Signal):
+        """
+        Aggregate received data into useful containers.
+
+        Parameters
+        ----------
+        new_stream_signal : Signal
+            Signal that will be emitted when a new stream has been created.
+        new_data_signal : Signal
+            Signal that will be emitted when new data for a stream has been received.
+        """
         super().__init__()
 
         self._data_cache = defaultdict(lambda: defaultdict(lambda: np.array([[], []])))
@@ -74,6 +84,27 @@ class PlotDisplay(QWidget):
         selected_signals_changed_2d: Signal,
         show_stats_by_default: bool = False,
     ):
+        """
+        Maintain and organize plotting capabilities.
+
+        This class is responsible for handling incoming data from the application,
+        and translating that into visual plots, using its configured properties.
+        It uses an internal object, instance of `DataAccumulator`, to join and store
+        the data it receives, and uses that to plot data points on-demand.
+
+        Parameters
+        ----------
+        data_source_manager : DataSourceManager
+            The object that will be responsible for handling us the data.
+        change_stream_signal : Signal
+            The signal that will be emitted when a new set of streams is selected.
+        selected_signals_changed_1d : Signal
+            The signal that will be emitted with a new 1D signals configuration.
+        selected_signals_changed_2d : Signal
+            The signal that will be emitted with a new 2D signals configuration.
+        show_stats_by_default : bool, optional
+            Whether to show a widget with curve statistics by default on the 1D plot.
+        """
         super().__init__()
 
         self._current_uids = [("", "")]

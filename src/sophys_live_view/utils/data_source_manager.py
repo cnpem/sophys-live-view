@@ -8,6 +8,13 @@ from .data_source import DataSource
 
 
 class DataSourceManager(QThread):
+    """
+    Manager for the set of DataSources in an application.
+
+    This entity is responsible for managing the lifecycle of DataSources once
+    they're added to it, and proxying signal emittions with some data injection taking place.
+    """
+
     # Here, we have a UID referent to the DataSource from which the data originates from,
     # and a SubUID, which allows for differentiation between datasets from the same DataSource.
     # The idea is that we keep track of both separately so that we can do stuff like filtering

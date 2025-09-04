@@ -19,6 +19,21 @@ class SignalSelector(QWidget):
     selected_signals_changed_2d = Signal(str, str, set)  # X, Y, Z
 
     def __init__(self, data_source_manager, change_stream_signal: Signal):
+        """
+        Select independent and dependent axis of data for display.
+
+        This class is responsible for handling the selection and deselection
+        of signals to be used by `PlotDisplay` for plotting data.
+        It communicates with that entity through its two signals, that get
+        emitted when the configuration changes, or when the selected stream changes.
+
+        Parameters
+        ----------
+        data_source_manager : DataSourceManager
+            The object that will be responsible for handling us the data.
+        change_stream_signal : Signal
+            The signal that will be emitted when a new set of streams is selected.
+        """
         super().__init__()
 
         self._signals = dict()

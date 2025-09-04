@@ -11,6 +11,19 @@ from silx.gui.widgets.TableWidget import TableWidget
 
 class MetadataViewer(QWidget):
     def __init__(self, data_source_manager, change_stream_signal):
+        """
+        Metadata visualization for one or more streams.
+
+        This entity is responsible for displaying a table with metadata keys
+        and values pertaining to one or more selected streams.
+
+        Parameters
+        ----------
+        data_source_manager : DataSourceManager
+            The object that will be responsible for handling us the metadata.
+        change_stream_signal : Signal
+            The signal that will be emitted when a new set of streams is selected.
+        """
         super().__init__()
 
         self._stream_metadata = dict()

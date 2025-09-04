@@ -2,6 +2,10 @@ from qtpy.QtCore import QThread, Signal
 
 
 class DataSource(QThread):
+    """
+    The base for any DataSource, containing the required signals and some common functionality.
+    """
+
     new_data_stream = Signal(
         str, str, set, dict, set, list, dict
     )  # uid, display_name, fields, fields name map, detectors, motors, metadata
