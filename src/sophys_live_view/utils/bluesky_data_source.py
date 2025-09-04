@@ -86,20 +86,18 @@ class BlueskyDataSource(DataSource, DocumentParser):
         if descriptor_name != "primary":
             return
 
-        fields.add("timestamp")
+        fields.add("time")
         fields.add("seq_num")
         self._run_metadata[start_uid]["fields"] = fields
 
         detectors = set(self._run_metadata[start_uid]["metadata"].get("detectors", []))
 
-        motors = ["timestamp"]
+        motors = ["time"]
         if "hints" in self._run_metadata[start_uid]["metadata"]:
             dimensions = self._run_metadata[start_uid]["metadata"]["hints"][
                 "dimensions"
             ]
             motors = list(v for x in dimensions for v in x[0])
-            if len(motors) == 1 and "time" in motors:
-                motors = ["timestamp"]
 
         self._descriptors[descriptor_uid] = start_uid
 
@@ -139,7 +137,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
             for key in start_metadata["detectors"]:
                 metadata[key]["position"] = position
 
-        received_data["timestamp"] = np.array([timestamp])
+        received_data["time"] = np.array([timestamp]) - start_metadata.get("time", 0)
         received_data["seq_num"] = np.array([seq_num])
 
         self.new_data_received.emit(start_uid, received_data, metadata)
