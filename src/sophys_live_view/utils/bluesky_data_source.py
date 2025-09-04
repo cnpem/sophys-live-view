@@ -85,6 +85,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
             return
 
         fields.add("timestamp")
+        fields.add("seq_num")
         self._run_metadata[start_uid]["fields"] = fields
 
         detectors = set(self._run_metadata[start_uid]["metadata"].get("detectors", []))
@@ -133,6 +134,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
                 metadata[key]["position"] = position
 
         received_data["timestamp"] = np.array([timestamp])
+        received_data["seq_num"] = np.array([seq_num])
 
         self.new_data_received.emit(start_uid, received_data, metadata)
 
