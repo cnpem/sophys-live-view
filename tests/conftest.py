@@ -14,8 +14,9 @@ class DummyDataSource(DataSource):
             uid,
             "abc",
             {"timestamp", "det"},
-            {"det"},
-            {"timestamp"},
+            {},
+            set(("det",)),
+            ["timestamp"],
             {"uid": uid},
         )
         self.new_data_received.emit(
@@ -34,8 +35,9 @@ class DummyDataSource(DataSource):
             uid,
             "ghi",
             {"timestamp", "det", "det2"},
-            {"det2"},
-            {"timestamp"},
+            {},
+            set(("det2",)),
+            ["timestamp"],
             {"uid": uid},
         )
         self.new_data_received.emit(

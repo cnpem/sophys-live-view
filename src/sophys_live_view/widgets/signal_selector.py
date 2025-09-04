@@ -175,7 +175,10 @@ class SelectionTable1D(QTableWidget):
             y_axis_checkbox.toggled.connect(self._change_y_axis_signal)
             self.setCellWidget(index, 2, y_axis_checkbox)
 
+        # NOTE: Avoid sending essentially the same signal twice in a row.
+        self.blockSignals(True)
         self._change_x_axis_signal()
+        self.blockSignals(False)
         self._change_y_axis_signal()
 
     def _change_x_axis_signal(self):
