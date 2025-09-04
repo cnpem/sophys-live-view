@@ -20,6 +20,7 @@ class SophysLiveView(QMainWindow):
         self.setWindowTitle(
             "sophys-live-view - version {}".format(version("sophys-live-view"))
         )
+        self.setStyleSheet(".QSplitter { background-color: #ccccdd; }")
 
         self.data_source_manager = DataSourceManager()
 
