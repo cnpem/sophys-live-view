@@ -17,6 +17,7 @@ dependencies = [
     "msgpack",
     "python-dateutil",
     "matplotlib",
+    "crc32c",
 ]
 dynamic = ["version"]
 readme = "README.md"
