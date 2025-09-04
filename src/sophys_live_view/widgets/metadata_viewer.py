@@ -1,12 +1,12 @@
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
     QHeaderView,
-    QTableWidget,
     QTableWidgetItem,
     QTabWidget,
     QVBoxLayout,
     QWidget,
 )
+from silx.gui.widgets.TableWidget import TableWidget
 
 
 class MetadataViewer(QWidget):
@@ -27,7 +27,8 @@ class MetadataViewer(QWidget):
         self._tab.clear()
 
         for uid, name in new_uids_and_names:
-            metadata_page = QTableWidget(columnCount=2)
+            metadata_page = TableWidget()
+            metadata_page.setColumnCount(2)
             metadata_page.verticalHeader().setVisible(False)
             metadata_page.setHorizontalHeaderLabels(["Key", "Value"])
             metadata_page.horizontalHeader().setSectionResizeMode(
