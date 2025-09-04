@@ -75,7 +75,7 @@ class DataSourceManager(QThread):
     def stop(self):
         with self._data_sources_lock:
             for data_source in self._data_sources.values():
-                data_source.terminate()
+                data_source.close_thread()
                 data_source.wait()
 
             self.requestInterruption()

@@ -23,11 +23,14 @@ class KafkaDataSource(BlueskyDataSource):
 
         self._logger = logging.getLogger("sophys.live_view.data_source.kafka")
 
+        self._closed = False
+
     def run(self):
         consumer = KafkaConsumer(
             self._topic_name,
             bootstrap_servers=self._bootstrap_servers,
             value_deserializer=msgpack.unpackb,
+            consumer_timeout_ms=250,
         )
 
         all_partitions = [
@@ -51,11 +54,15 @@ class KafkaDataSource(BlueskyDataSource):
         end_offsets = consumer.end_offsets(all_partitions)
         current_offset = list(end_offsets.values())[0]
 
-        for message in consumer:
-            self._logger.debug("Received new message: %s", str(message))
+        while not self._closed:
+            for message in consumer:
+                self._logger.debug("Received new message: %s", str(message))
 
-            done_preloading = message.offset + 1 >= current_offset
-            self.go_to_last_automatically.emit(done_preloading)
+                done_preloading = message.offset + 1 >= current_offset
+                self.go_to_last_automatically.emit(done_preloading)
 
-            document_type, document = message.value
-            self(document_type, document)
+                document_type, document = message.value
+                self(document_type, document)
+
+    def close_thread(self):
+        self._closed = True

@@ -9,3 +9,7 @@ class DataSource(QThread):
         str, dict, dict
     )  # uid, {signal : data}, {signal : metadata}
     go_to_last_automatically = Signal(bool)  # Whether to auto-update the display or not
+
+    def close_thread(self):
+        """Stop processing this DataSource."""
+        self.terminate()
