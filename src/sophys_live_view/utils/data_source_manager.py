@@ -1,4 +1,5 @@
 from threading import Lock
+import time
 import uuid
 
 from qtpy.QtCore import QThread, Signal
@@ -64,7 +65,7 @@ class DataSourceManager(QThread):
         # Here we should pull from data sources which do not provide us with asynchronous data.
 
         while not self.isInterruptionRequested():
-            self.sleep(0.2)
+            time.sleep(0.2)
 
             with self._data_sources_lock:
                 if len(self._unvisited_data_sources) == 0:
