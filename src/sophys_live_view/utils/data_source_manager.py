@@ -65,10 +65,7 @@ class DataSourceManager(QThread):
                 data_source_uid = self._unvisited_data_sources.pop()
                 data_source = self._data_sources[data_source_uid]
 
-                if hasattr(data_source, "start_thread"):
-                    data_source.start_thread()
-                else:
-                    data_source.start()
+                data_source.start_thread()
 
                 self._visited_data_sources.add(data_source_uid)
 
