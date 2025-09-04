@@ -58,6 +58,9 @@ class KafkaDataSource(BlueskyDataSource):
 
         while not self._closed:
             for message in consumer:
+                if self._closed:
+                    break
+
                 self._logger.debug("Received new message: %s", str(message))
 
                 done_preloading = message.offset + 1 >= current_offset
