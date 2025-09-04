@@ -1,3 +1,4 @@
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
     QHeaderView,
     QTableWidget,
@@ -36,6 +37,9 @@ class MetadataViewer(QWidget):
 
             for metadata_key, metadata_value in self._stream_metadata[uid].items():
                 key_item = QTableWidgetItem(str(metadata_key))
+                key_item.setTextAlignment(
+                    Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignHCenter
+                )
                 value_item = QTableWidgetItem(str(metadata_value))
 
                 index = metadata_page.rowCount()
