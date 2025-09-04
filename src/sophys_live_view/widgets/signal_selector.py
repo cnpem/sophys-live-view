@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
     QButtonGroup,
     QCheckBox,
@@ -132,7 +132,12 @@ class SelectionTable1D(QTableWidget):
         sorted_signals_list = sorted(signals)
         for index, signal in enumerate(sorted_signals_list):
             self.insertRow(index)
-            self.setItem(index, 0, QTableWidgetItem(signal))
+
+            item = QTableWidgetItem(signal)
+            item.setTextAlignment(
+                Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
+            )
+            self.setItem(index, 0, item)
 
             x_axis_radio_button = QRadioButton()
             x_axis_radio_button.setStyleSheet("margin-left:50%; margin-right:50%;")
@@ -231,7 +236,12 @@ class SelectionTable2D(QTableWidget):
         sorted_signals_list = sorted(signals)
         for index, signal in enumerate(sorted_signals_list):
             self.insertRow(index)
-            self.setItem(index, 0, QTableWidgetItem(signal))
+
+            item = QTableWidgetItem(signal)
+            item.setTextAlignment(
+                Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
+            )
+            self.setItem(index, 0, item)
 
             x_axis_radio_button = QRadioButton()
             x_axis_radio_button.setStyleSheet("margin-left:50%; margin-right:50%;")
