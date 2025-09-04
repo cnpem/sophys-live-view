@@ -66,6 +66,7 @@ class PlotDisplay(QWidget):
         change_stream_signal: Signal,
         selected_signals_changed_1d: Signal,
         selected_signals_changed_2d: Signal,
+        show_stats_by_default: bool = False,
     ):
         super().__init__()
 
@@ -92,6 +93,16 @@ class PlotDisplay(QWidget):
         self._plots = QTabWidget()
         _plot_1d = Plot1D()
         self._plots.addTab(_plot_1d, "1D")
+
+        if show_stats_by_default:
+            dock_widget = _plot_1d.getStatsWidget().parent()
+            # Run the callback that adds the widget to its docking area.
+            dock_widget.show()
+            # By default, it adds the dock widget to the right area. We need it at the bottom.
+            _plot_1d.removeDockWidget(dock_widget)
+            _plot_1d.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock_widget)
+            # It was hidden when we removed the dock widget from its parent.
+            dock_widget.show()
 
         _plot_2d_scatter = Plot2D()
         _plot_2d_scatter.setDefaultColormap(Colormap(name="viridis"))

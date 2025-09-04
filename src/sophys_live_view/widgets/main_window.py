@@ -11,7 +11,9 @@ from .signal_selector import SignalSelector
 
 
 class SophysLiveView(QMainWindow):
-    def __init__(self, data_sources, parent=None, **kwargs):
+    def __init__(
+        self, data_sources, show_stats_by_default=False, parent=None, **kwargs
+    ):
         super().__init__(parent, **kwargs)
 
         self.resize(1200, 800)
@@ -33,6 +35,7 @@ class SophysLiveView(QMainWindow):
             self.run_selector.selected_streams_changed,
             self.signal_selector.selected_signals_changed_1d,
             self.signal_selector.selected_signals_changed_2d,
+            show_stats_by_default,
         )
 
         self.signal_selector.set_plot_tab_changed_signal(

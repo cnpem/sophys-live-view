@@ -27,6 +27,11 @@ def entrypoint():
         help="Retrieve X hours before the current time from Kafka.",
     )
     parser.add_argument(
+        "--show-stats-by-default",
+        action="store_true",
+        help="Show curve statistics by default on 1D plots.",
+    )
+    parser.add_argument(
         "--profile", action="store_true", help="Profile this application with py-spy."
     )
 
@@ -44,7 +49,7 @@ def entrypoint():
         args.topic, [args.bootstrap], hour_offset=args.hour_offset
     )
 
-    main_window = SophysLiveView([kafka_data_source])
+    main_window = SophysLiveView([kafka_data_source], args.show_stats_by_default)
     main_window.show()
 
     return app.exec_()
