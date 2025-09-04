@@ -15,6 +15,7 @@ class DataAggregator(QObject):
 
         self._data_cache = defaultdict(lambda: defaultdict(lambda: np.array([[], []])))
         self._metadata_cache = defaultdict(lambda: dict())
+        self._signals_name_map = defaultdict(lambda: dict())
 
         new_stream_signal.connect(self._on_new_stream)
         new_data_signal.connect(self._receive_new_data)
@@ -25,6 +26,9 @@ class DataAggregator(QObject):
     def get_metadata(self, uid: str):
         return self._metadata_cache[uid]
 
+    def get_signal_name(self, uid: str, signal: str):
+        return self._signals_name_map[uid].get(signal, signal)
+
     def get_signals(self, uid: str) -> set[str]:
         return set(self._data_cache[uid].keys())
 
@@ -34,11 +38,13 @@ class DataAggregator(QObject):
         subuid: str,
         display_name: str,
         signals: set[str],
+        signals_name_map: dict[str, str],
         detectors: set[str],
         motors: list[str],
         metadata: dict,
     ):
         self._metadata_cache[subuid] = metadata
+        self._signals_name_map[subuid] = signals_name_map
 
         if "shape" in metadata:
             for detector in metadata.get("detectors", []):
@@ -187,11 +193,13 @@ class PlotDisplay(QWidget):
             cached_data = np.trim_zeros(cached_data.flatten())
 
         plot_widget = self._plots.widget(tab_index)
-        plot_widget.getXAxis().setLabel(x_axis_signal)
+        plot_widget.getXAxis().setLabel(
+            self._data_aggregator.get_signal_name(uid, x_axis_signal)
+        )
         plot_widget.addCurve(
             x_axis_data,
             cached_data,
-            ylabel=detector_name,
+            ylabel=self._data_aggregator.get_signal_name(uid, detector_name),
             legend=detector_name + " - " + stream_name + " - " + uid,
         )
 
@@ -211,8 +219,12 @@ class PlotDisplay(QWidget):
             cached_data = np.trim_zeros(cached_data.flatten())
 
         plot_widget = self._plots.widget(tab_index)
-        plot_widget.getXAxis().setLabel(x_axis_signal)
-        plot_widget.getYAxis().setLabel(y_axis_signal)
+        plot_widget.getXAxis().setLabel(
+            self._data_aggregator.get_signal_name(uid, x_axis_signal)
+        )
+        plot_widget.getYAxis().setLabel(
+            self._data_aggregator.get_signal_name(uid, y_axis_signal)
+        )
         plot_widget.addScatter(
             x_axis_data,
             y_axis_data,

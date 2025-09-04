@@ -22,6 +22,7 @@ class SignalSelector(QWidget):
         super().__init__()
 
         self._signals = dict()
+        self._signals_name_map = dict()
         self.uids_with_signal = defaultdict(lambda: set())
 
         self.default_dependent_signals = set()
@@ -82,17 +83,26 @@ class SignalSelector(QWidget):
         self._1d_signal_selection_table.configure_signals(new_uids, new_signals)
         self._2d_signal_selection_table.configure_signals(new_uids, new_signals)
 
+    def get_signal_name(self, signal: str):
+        # FIXME: Properly handle different names in each uid
+        name = signal
+        for uid in self.uids_with_signal[signal]:
+            name = self._signals_name_map[uid].get(signal, signal)
+        return name
+
     def _add_new_signal(
         self,
         uid: str,
         subuid: str,
         display_name: str,
         signals: set[str],
+        signals_name_map: dict[str, str],
         detectors: set[str],
         motors: list[str],
         metadata: dict,
     ):
         self._signals[subuid] = signals
+        self._signals_name_map[subuid] = signals_name_map
 
         self._default_dependent_signals[subuid] = detectors
         self._default_independent_signals[subuid] = motors
@@ -133,10 +143,11 @@ class SelectionTable1D(QTableWidget):
         for index, signal in enumerate(sorted_signals_list):
             self.insertRow(index)
 
-            item = QTableWidgetItem(signal)
+            item = QTableWidgetItem(self._parent.get_signal_name(signal))
             item.setTextAlignment(
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
             )
+            item.setData(Qt.ItemDataRole.UserRole, signal)
             self.setItem(index, 0, item)
 
             x_axis_radio_button = QRadioButton()
@@ -171,13 +182,13 @@ class SelectionTable1D(QTableWidget):
 
         for index in range(self.rowCount()):
             if self.cellWidget(index, 1).isChecked():
-                signal = self.item(index, 0).text()
+                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
                 selected_signal = signal
                 continue
 
         if selected_signal == "":
             for index in range(self.rowCount()):
-                signal = self.item(index, 0).text()
+                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
                 if signal in self._parent.default_independent_signals:
                     selected_signal = signal
 
@@ -191,13 +202,18 @@ class SelectionTable1D(QTableWidget):
 
         for index in range(self.rowCount()):
             if self.cellWidget(index, 2).isChecked():
-                selected_signals.add(self.item(index, 0).text())
+                selected_signals.add(self.item(index, 0).data(Qt.ItemDataRole.UserRole))
 
         if len(selected_signals) == 0:
             for index in range(self.rowCount()):
-                if self.item(index, 0).text() in self._parent.default_dependent_signals:
+                if (
+                    self.item(index, 0).data(Qt.ItemDataRole.UserRole)
+                    in self._parent.default_dependent_signals
+                ):
                     self.cellWidget(index, 2).setChecked(True)
-                    selected_signals.add(self.item(index, 0).text())
+                    selected_signals.add(
+                        self.item(index, 0).data(Qt.ItemDataRole.UserRole)
+                    )
 
         return selected_signals
 
@@ -237,10 +253,11 @@ class SelectionTable2D(QTableWidget):
         for index, signal in enumerate(sorted_signals_list):
             self.insertRow(index)
 
-            item = QTableWidgetItem(signal)
+            item = QTableWidgetItem(self._parent.get_signal_name(signal))
             item.setTextAlignment(
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
             )
+            item.setData(Qt.ItemDataRole.UserRole, signal)
             self.setItem(index, 0, item)
 
             x_axis_radio_button = QRadioButton()
@@ -269,13 +286,13 @@ class SelectionTable2D(QTableWidget):
 
         for index in range(self.rowCount()):
             if self.cellWidget(index, 1).isChecked():
-                signal = self.item(index, 0).text()
+                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
                 selected_signal = signal
                 continue
 
         if selected_signal == "" and len(self._parent.default_independent_signals) >= 2:
             for index in range(self.rowCount()):
-                signal = self.item(index, 0).text()
+                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
                 if signal == self._parent.default_independent_signals[0]:
                     selected_signal = signal
 
@@ -289,13 +306,13 @@ class SelectionTable2D(QTableWidget):
 
         for index in range(self.rowCount()):
             if self.cellWidget(index, 2).isChecked():
-                signal = self.item(index, 0).text()
+                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
                 selected_signal = signal
                 continue
 
         if selected_signal == "" and len(self._parent.default_independent_signals) >= 2:
             for index in range(self.rowCount()):
-                signal = self.item(index, 0).text()
+                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
                 if signal == self._parent.default_independent_signals[1]:
                     selected_signal = signal
 
@@ -309,13 +326,18 @@ class SelectionTable2D(QTableWidget):
 
         for index in range(self.rowCount()):
             if self.cellWidget(index, 3).isChecked():
-                selected_signals.add(self.item(index, 0).text())
+                selected_signals.add(self.item(index, 0).data(Qt.ItemDataRole.UserRole))
 
         if len(selected_signals) == 0:
             for index in range(self.rowCount()):
-                if self.item(index, 0).text() in self._parent.default_dependent_signals:
+                if (
+                    self.item(index, 0).data(Qt.ItemDataRole.UserRole)
+                    in self._parent.default_dependent_signals
+                ):
                     self.cellWidget(index, 3).setChecked(True)
-                    selected_signals.add(self.item(index, 0).text())
+                    selected_signals.add(
+                        self.item(index, 0).data(Qt.ItemDataRole.UserRole)
+                    )
 
         return selected_signals
 

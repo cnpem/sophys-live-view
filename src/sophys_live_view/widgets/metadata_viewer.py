@@ -56,6 +56,7 @@ class MetadataViewer(QWidget):
         subuid: str,
         display_name: str,
         signals: set[str],
+        signals_name_map: dict[str, str],
         detectors: set[str],
         motors: list[str],
         metadata: dict,

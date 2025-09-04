@@ -22,9 +22,18 @@ class DocumentParser(DocumentRouter):
         start_uid = doc["run_start"]
         descriptor_uid = doc["uid"]
         descriptor_name = doc["name"]
-        fields = set(doc["data_keys"].keys())
 
-        self.on_new_descriptor(start_uid, descriptor_uid, descriptor_name, fields)
+        fields = set()
+        fields_name_map = dict()
+        for field, field_info in doc["data_keys"].items():
+            if "units" in field_info:
+                fields_name_map[field] = "{} ({})".format(field, field_info["units"])
+
+            fields.add(field)
+
+        self.on_new_descriptor(
+            start_uid, descriptor_uid, descriptor_name, fields, fields_name_map
+        )
 
     def event(self, doc: Event):
         descriptor_uid = doc["descriptor"]
@@ -48,6 +57,7 @@ class DocumentParser(DocumentRouter):
         descriptor_uid: str,
         descriptor_name: str,
         fields: set[str],
+        fields_name_map: dict[str, str],
     ):
         pass
 
@@ -81,6 +91,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
         descriptor_uid: str,
         descriptor_name: str,
         fields: set[str],
+        fields_name_map: dict[str, str],
     ):
         # TODO: Support other streams
         if descriptor_name != "primary":
@@ -89,6 +100,8 @@ class BlueskyDataSource(DataSource, DocumentParser):
         fields.add("time")
         fields.add("seq_num")
         self._run_metadata[start_uid]["fields"] = fields
+
+        fields_name_map["time"] = "time (s)"
 
         detectors = set(self._run_metadata[start_uid]["metadata"].get("detectors", []))
 
@@ -105,6 +118,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
             start_uid,
             self._run_metadata[start_uid]["name"],
             fields,
+            fields_name_map,
             detectors,
             motors,
             self._run_metadata[start_uid]["metadata"],
