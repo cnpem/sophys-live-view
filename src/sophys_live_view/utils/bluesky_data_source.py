@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from collections import defaultdict
 from functools import partial
+import typing
 
 from event_model import DocumentRouter, Event, EventDescriptor, RunStart, RunStop
 import numpy as np
@@ -31,8 +32,17 @@ class DocumentParser(DocumentRouter):
 
             fields.add(field)
 
+        extra_metadata = dict()
+        for signal, data in doc["configuration"].items():
+            extra_metadata[signal] = data["data"]
+
         self.on_new_descriptor(
-            start_uid, descriptor_uid, descriptor_name, fields, fields_name_map
+            start_uid,
+            descriptor_uid,
+            descriptor_name,
+            fields,
+            fields_name_map,
+            extra_metadata,
         )
 
     def event(self, doc: Event):
@@ -58,6 +68,7 @@ class DocumentParser(DocumentRouter):
         descriptor_name: str,
         fields: set[str],
         fields_name_map: dict[str, str],
+        extra_metadata: dict[str, dict[str, typing.Any]],
     ):
         pass
 
@@ -92,6 +103,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
         descriptor_name: str,
         fields: set[str],
         fields_name_map: dict[str, str],
+        extra_metadata: dict[str, dict[str, typing.Any]],
     ):
         # TODO: Support other streams
         if descriptor_name != "primary":
@@ -112,6 +124,9 @@ class BlueskyDataSource(DataSource, DocumentParser):
             ]
             motors = list(v for x in dimensions for v in x[0])
 
+        metadata = self._run_metadata[start_uid]["metadata"]
+        metadata["configuration"] = extra_metadata
+
         self._descriptors[descriptor_uid] = start_uid
 
         self.new_data_stream.emit(
@@ -121,7 +136,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
             fields_name_map,
             detectors,
             motors,
-            self._run_metadata[start_uid]["metadata"],
+            metadata,
         )
 
     def on_new_event(
