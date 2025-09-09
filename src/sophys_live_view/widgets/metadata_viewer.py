@@ -10,7 +10,7 @@ from silx.gui.widgets.TableWidget import TableWidget
 
 
 class MetadataViewer(QWidget):
-    def __init__(self, data_source_manager, change_stream_signal):
+    def __init__(self, data_source_manager, change_streams_signal):
         """
         Metadata visualization for one or more streams.
 
@@ -21,7 +21,7 @@ class MetadataViewer(QWidget):
         ----------
         data_source_manager : DataSourceManager
             The object that will be responsible for handling us the metadata.
-        change_stream_signal : Signal
+        change_streams_signal : Signal
             The signal that will be emitted when a new set of streams is selected.
         """
         super().__init__()
@@ -34,7 +34,7 @@ class MetadataViewer(QWidget):
         self.setLayout(layout)
 
         data_source_manager.new_data_stream.connect(self._add_new_stream)
-        change_stream_signal.connect(self.change_current_streams)
+        change_streams_signal.connect(self.change_current_streams)
 
     def change_current_streams(self, new_uids_and_names: list[tuple[str, str]]):
         self._tab.clear()

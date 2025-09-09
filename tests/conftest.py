@@ -17,7 +17,7 @@ class DummyDataSource(DataSource):
             {},
             set(("det",)),
             ["timestamp"],
-            {"uid": uid},
+            {"uid": uid, "stream_name": "abc"},
         )
         self.new_data_received.emit(
             uid,
@@ -38,7 +38,11 @@ class DummyDataSource(DataSource):
             {},
             set(("det2",)),
             ["timestamp"],
-            {"uid": uid},
+            {
+                "uid": uid,
+                "stream_name": "ghi",
+                "configuration": {"one": "ghi", "two": {"two_three": "ghi"}},
+            },
         )
         self.new_data_received.emit(
             uid,
