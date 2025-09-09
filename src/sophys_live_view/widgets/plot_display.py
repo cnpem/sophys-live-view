@@ -60,7 +60,7 @@ class DataAggregator(QObject):
 
         if "shape" in metadata:
             for detector in metadata.get("detectors", []):
-                self._data_cache[subuid][detector] = np.zeros(metadata["shape"])
+                self._data_cache[subuid][detector] = np.ones(metadata["shape"]) * np.nan
 
     def _receive_new_data(self, uid: str, subuid: str, new_data: dict, metadata: dict):
         for detector_name, detector_values in new_data.items():
@@ -200,7 +200,7 @@ class PlotDisplay(IPlotDisplay):
         cached_data = self._data_aggregator.get_data(uid, detector_name)
 
         if len(cached_data.shape) > 1:
-            cached_data = np.trim_zeros(cached_data.flatten())
+            cached_data = np.trim_zeros(np.nan_to_num(cached_data.flatten()))
 
         plot_widget = self._plots.widget(tab_index)
         plot_widget.getXAxis().setLabel(
@@ -226,7 +226,7 @@ class PlotDisplay(IPlotDisplay):
         cached_data = self._data_aggregator.get_data(uid, detector_name)
 
         if len(cached_data.shape) > 1:
-            cached_data = np.trim_zeros(cached_data.flatten())
+            cached_data = np.trim_zeros(np.nan_to_num(cached_data.flatten()))
 
         plot_widget = self._plots.widget(tab_index)
         plot_widget.getXAxis().setLabel(
