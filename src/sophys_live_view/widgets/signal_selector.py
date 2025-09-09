@@ -294,7 +294,7 @@ class SelectionTable2D(QTableWidget):
         if selected_signal == "" and len(self._parent.default_independent_signals) >= 2:
             for index in range(self.rowCount()):
                 signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                if signal == self._parent.default_independent_signals[0]:
+                if signal == self._parent.default_independent_signals[1]:
                     selected_signal = signal
 
                     self.cellWidget(index, 1).setChecked(True)
@@ -314,7 +314,7 @@ class SelectionTable2D(QTableWidget):
         if selected_signal == "" and len(self._parent.default_independent_signals) >= 2:
             for index in range(self.rowCount()):
                 signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                if signal == self._parent.default_independent_signals[1]:
+                if signal == self._parent.default_independent_signals[0]:
                     selected_signal = signal
 
                     self.cellWidget(index, 2).setChecked(True)

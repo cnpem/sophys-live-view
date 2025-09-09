@@ -267,6 +267,12 @@ class PlotDisplay(IPlotDisplay):
             return
 
         plot_widget = self._plots.widget(tab_index)
+        plot_widget.getXAxis().setLabel(
+            self._data_aggregator.get_signal_name(uid, x_axis_signal)
+        )
+        plot_widget.getYAxis().setLabel(
+            self._data_aggregator.get_signal_name(uid, y_axis_signal)
+        )
         plot_widget.addImage(
             cached_data,
             origin=origin,
