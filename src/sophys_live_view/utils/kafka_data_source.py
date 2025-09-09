@@ -68,7 +68,7 @@ class KafkaDataSource(BlueskyDataSource):
 
                 document_type, document = message.value
 
-                if document_type in ("start", "stop"):
+                if document_type in ("start", "event", "stop"):
                     if done_preloading:
                         completion_percent = 100.0
                     else:
