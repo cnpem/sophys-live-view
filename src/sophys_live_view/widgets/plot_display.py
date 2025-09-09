@@ -2,9 +2,11 @@ from collections import defaultdict
 
 import numpy as np
 from qtpy.QtCore import QObject, Qt, Signal
-from qtpy.QtWidgets import QLabel, QStackedWidget, QTabWidget, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QLabel, QStackedWidget, QTabWidget, QVBoxLayout
 from silx.gui.colors import Colormap
 from silx.gui.plot.PlotWindow import Plot1D, Plot2D
+
+from .interfaces import IPlotDisplay
 
 
 class DataAggregator(QObject):
@@ -73,38 +75,15 @@ class DataAggregator(QObject):
         self.new_data_received.emit()
 
 
-class PlotDisplay(QWidget):
-    plot_tab_changed = Signal(str)  # new tab name
-
+class PlotDisplay(IPlotDisplay):
     def __init__(
         self,
         data_source_manager,
-        change_stream_signal: Signal,
+        selected_streams_changed: Signal,
         selected_signals_changed_1d: Signal,
         selected_signals_changed_2d: Signal,
         show_stats_by_default: bool = False,
     ):
-        """
-        Maintain and organize plotting capabilities.
-
-        This class is responsible for handling incoming data from the application,
-        and translating that into visual plots, using its configured properties.
-        It uses an internal object, instance of `DataAccumulator`, to join and store
-        the data it receives, and uses that to plot data points on-demand.
-
-        Parameters
-        ----------
-        data_source_manager : DataSourceManager
-            The object that will be responsible for handling us the data.
-        change_stream_signal : Signal
-            The signal that will be emitted when a new set of streams is selected.
-        selected_signals_changed_1d : Signal
-            The signal that will be emitted with a new 1D signals configuration.
-        selected_signals_changed_2d : Signal
-            The signal that will be emitted with a new 2D signals configuration.
-        show_stats_by_default : bool, optional
-            Whether to show a widget with curve statistics by default on the 1D plot.
-        """
         super().__init__()
 
         self._current_uids = [("", "")]
@@ -161,7 +140,7 @@ class PlotDisplay(QWidget):
         # NOTE: Here we have kind of a race condition: We need the change_stream_signal
         # connection, but it must happen before the other ones, so that the signal selector
         # signals update the plots with the correct information.
-        change_stream_signal.connect(self.change_current_streams)
+        selected_streams_changed.connect(self.change_current_streams)
         selected_signals_changed_1d.connect(
             self._on_1d_signals_changed, Qt.ConnectionType.QueuedConnection
         )

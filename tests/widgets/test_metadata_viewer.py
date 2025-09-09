@@ -6,7 +6,7 @@ from sophys_live_view.widgets.metadata_viewer import MetadataViewer
 
 
 class MockSignals(QObject):
-    change_streams_signal = Signal(list)
+    selected_streams_changed = Signal(list)
 
 
 @pytest.fixture
@@ -16,7 +16,9 @@ def signals_mocker():
 
 @pytest.fixture
 def viewer(data_source_manager, signals_mocker, qtbot):
-    selector = MetadataViewer(data_source_manager, signals_mocker.change_streams_signal)
+    selector = MetadataViewer(
+        data_source_manager, signals_mocker.selected_streams_changed
+    )
     qtbot.addWidget(selector)
     return selector
 
@@ -63,7 +65,7 @@ def test_select_stream(viewer, data_source_manager, signals_mocker, qtbot):
     with qtbot.waitSignals([data_source_manager.new_data_stream] * 2, timeout=1000):
         data_source_manager.start()
 
-    signals_mocker.change_streams_signal.emit(uids_and_names)
+    signals_mocker.selected_streams_changed.emit(uids_and_names)
     qtbot.waitUntil(tabs_populated, timeout=1000)
 
     abc_page: QTableWidget = viewer._tab.widget(0)

@@ -8,28 +8,13 @@ from qtpy.QtWidgets import (
     QProgressBar,
     QPushButton,
     QVBoxLayout,
-    QWidget,
 )
 
 from ..utils.json_data_source import JSONDataSource
+from .interfaces import IRunSelector
 
 
-class RunSelector(QWidget):
-    """
-    Manager for streams, bookmarks (favorites), and creator of new DataSources.
-
-    This class is responsible for handling selection of streams, and propagating
-    that to other parts of the application via its signal. It also handles bookmarks
-    internally and creates new DataSources based on the import criterion.
-
-    Parameters
-    ----------
-    data_source_manager : DataSourceManager
-        The object that will be responsible for handling us the metadata.
-    """
-
-    selected_streams_changed = Signal(list)  # List of (uid, stream name)
-
+class RunSelector(IRunSelector):
     select_item = Signal(QListWidgetItem)
 
     def __init__(self, data_source_manager):

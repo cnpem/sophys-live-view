@@ -5,7 +5,7 @@ from sophys_live_view.widgets.signal_selector import SignalSelector
 
 
 class MockSignals(QObject):
-    change_streams_signal = Signal(list)
+    selected_streams_changed = Signal(list)
 
 
 @pytest.fixture
@@ -15,7 +15,9 @@ def signals_mocker():
 
 @pytest.fixture
 def selector(data_source_manager, signals_mocker, qtbot):
-    selector = SignalSelector(data_source_manager, signals_mocker.change_streams_signal)
+    selector = SignalSelector(
+        data_source_manager, signals_mocker.selected_streams_changed
+    )
     qtbot.addWidget(selector)
     return selector
 
@@ -34,7 +36,7 @@ def test_default_signals_1d(data_source_manager, selector, signals_mocker, qtbot
     with qtbot.waitSignal(
         selector.selected_signals_changed_1d, timeout=1000
     ) as blocker:
-        signals_mocker.change_streams_signal.emit(uids_and_names[:1])
+        signals_mocker.selected_streams_changed.emit(uids_and_names[:1])
 
     assert blocker.args[0] == "timestamp", blocker.args
     assert "det" in blocker.args[1], blocker.args
@@ -54,7 +56,7 @@ def test_change_signals_1d(data_source_manager, selector, signals_mocker, qtbot)
     with qtbot.waitSignal(
         selector.selected_signals_changed_1d, timeout=1000
     ) as blocker:
-        signals_mocker.change_streams_signal.emit(uids_and_names[:1])
+        signals_mocker.selected_streams_changed.emit(uids_and_names[:1])
 
     assert "timestamp" not in blocker.args[1], blocker.args
 

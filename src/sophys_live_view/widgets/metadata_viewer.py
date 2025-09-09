@@ -4,26 +4,14 @@ from qtpy.QtWidgets import (
     QTableWidgetItem,
     QTabWidget,
     QVBoxLayout,
-    QWidget,
 )
 from silx.gui.widgets.TableWidget import TableWidget
 
+from .interfaces import IMetadataViewer
 
-class MetadataViewer(QWidget):
-    def __init__(self, data_source_manager, change_streams_signal):
-        """
-        Metadata visualization for one or more streams.
 
-        This entity is responsible for displaying a table with metadata keys
-        and values pertaining to one or more selected streams.
-
-        Parameters
-        ----------
-        data_source_manager : DataSourceManager
-            The object that will be responsible for handling us the metadata.
-        change_streams_signal : Signal
-            The signal that will be emitted when a new set of streams is selected.
-        """
+class MetadataViewer(IMetadataViewer):
+    def __init__(self, data_source_manager, selected_streams_changed):
         super().__init__()
 
         self._stream_metadata = dict()
@@ -34,7 +22,7 @@ class MetadataViewer(QWidget):
         self.setLayout(layout)
 
         data_source_manager.new_data_stream.connect(self._add_new_stream)
-        change_streams_signal.connect(self.change_current_streams)
+        selected_streams_changed.connect(self.change_current_streams)
 
     def change_current_streams(self, new_uids_and_names: list[tuple[str, str]]):
         self._tab.clear()

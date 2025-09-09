@@ -10,30 +10,13 @@ from qtpy.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
-    QWidget,
 )
 
+from .interfaces import ISignalSelector
 
-class SignalSelector(QWidget):
-    selected_signals_changed_1d = Signal(str, set)  # X, Y
-    selected_signals_changed_2d = Signal(str, str, set)  # X, Y, Z
 
-    def __init__(self, data_source_manager, change_stream_signal: Signal):
-        """
-        Select independent and dependent axis of data for display.
-
-        This class is responsible for handling the selection and deselection
-        of signals to be used by `PlotDisplay` for plotting data.
-        It communicates with that entity through its two signals, that get
-        emitted when the configuration changes, or when the selected stream changes.
-
-        Parameters
-        ----------
-        data_source_manager : DataSourceManager
-            The object that will be responsible for handling us the data.
-        change_stream_signal : Signal
-            The signal that will be emitted when a new set of streams is selected.
-        """
+class SignalSelector(ISignalSelector):
+    def __init__(self, data_source_manager, selected_streams_changed: Signal):
         super().__init__()
 
         self._signals = dict()
@@ -52,19 +35,19 @@ class SignalSelector(QWidget):
         layout.addWidget(self._signal_selection_stack)
 
         self._1d_signal_selection_table = SelectionTable1D(self)
-        self._1d_signal_selection_table.selected_signals_changed.connect(
+        self._1d_signal_selection_table.selected_streams_changed.connect(
             self.selected_signals_changed_1d.emit
         )
         self._signal_selection_stack.addWidget(self._1d_signal_selection_table)
 
         self._2d_signal_selection_table = SelectionTable2D(self)
-        self._2d_signal_selection_table.selected_signals_changed.connect(
+        self._2d_signal_selection_table.selected_streams_changed.connect(
             self.selected_signals_changed_2d.emit
         )
         self._signal_selection_stack.addWidget(self._2d_signal_selection_table)
 
         data_source_manager.new_data_stream.connect(self._add_new_signal)
-        change_stream_signal.connect(self.change_current_streams)
+        selected_streams_changed.connect(self.change_current_streams)
 
     def set_plot_tab_changed_signal(self, signal: Signal):
         signal.connect(self._change_tab)
@@ -131,7 +114,7 @@ class SignalSelector(QWidget):
 
 
 class SelectionTable1D(QTableWidget):
-    selected_signals_changed = Signal(str, set)  # X, Y
+    selected_streams_changed = Signal(str, set)  # X, Y
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -184,14 +167,14 @@ class SelectionTable1D(QTableWidget):
     def _change_x_axis_signal(self):
         self._selected_x_signal = self._get_selected_x_axis_signal()
 
-        self.selected_signals_changed.emit(
+        self.selected_streams_changed.emit(
             self._selected_x_signal, self._selected_y_signals
         )
 
     def _change_y_axis_signal(self):
         self._selected_y_signals = self._get_selected_y_axis_signals()
 
-        self.selected_signals_changed.emit(
+        self.selected_streams_changed.emit(
             self._selected_x_signal, self._selected_y_signals
         )
 
@@ -237,7 +220,7 @@ class SelectionTable1D(QTableWidget):
 
 
 class SelectionTable2D(QTableWidget):
-    selected_signals_changed = Signal(str, str, set)  # X, Y, Z
+    selected_streams_changed = Signal(str, str, set)  # X, Y, Z
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -362,20 +345,20 @@ class SelectionTable2D(QTableWidget):
     def _change_x_axis_signal(self):
         self._selected_x_signal = self._get_selected_x_axis_signal()
 
-        self.selected_signals_changed.emit(
+        self.selected_streams_changed.emit(
             self._selected_x_signal, self._selected_y_signal, self._selected_z_signals
         )
 
     def _change_y_axis_signal(self):
         self._selected_y_signal = self._get_selected_y_axis_signal()
 
-        self.selected_signals_changed.emit(
+        self.selected_streams_changed.emit(
             self._selected_x_signal, self._selected_y_signal, self._selected_z_signals
         )
 
     def _change_z_axis_signals(self):
         self._selected_z_signals = self._get_selected_z_axis_signals()
 
-        self.selected_signals_changed.emit(
+        self.selected_streams_changed.emit(
             self._selected_x_signal, self._selected_y_signal, self._selected_z_signals
         )
