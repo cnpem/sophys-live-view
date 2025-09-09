@@ -57,6 +57,8 @@ class KafkaDataSource(BlueskyDataSource):
         current_offset = list(end_offsets.values())[0]
 
         while not self._closed:
+            sent_completed_status = False
+
             for message in consumer:
                 if self._closed:
                     break
@@ -68,9 +70,14 @@ class KafkaDataSource(BlueskyDataSource):
 
                 document_type, document = message.value
 
-                if document_type in ("start", "event", "stop"):
+                if not sent_completed_status and document_type in (
+                    "start",
+                    "event",
+                    "stop",
+                ):
                     if done_preloading:
                         completion_percent = 100.0
+                        sent_completed_status = True
                     else:
                         completion_percent = (
                             100
