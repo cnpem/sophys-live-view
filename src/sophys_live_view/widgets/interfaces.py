@@ -12,6 +12,10 @@ class IRunSelector(QWidget):
     that to other parts of the application via its signal. It also handles bookmarks
     internally and creates new DataSources based on the import criterion.
 
+    This object provides the `selected_streams_changed` signal, which is used by
+    other components to react to a change in run selection (e.g. update the data
+    plotted, or the metadata visualization).
+
     Parameters
     ----------
     data_source_manager : DataSourceManager
@@ -45,6 +49,11 @@ class ISignalSelector(QWidget):
     of signals to be used by `PlotDisplay` for plotting data.
     It communicates with that entity through its two signals, that get
     emitted when the configuration changes, or when the selected stream changes.
+
+    This object also reacts to new stream selections, updating the available
+    signals accordingly (including telling `PlotDisplay` which signals to plot
+    as the default right after switching streams), and reacts to changes in
+    the plotted type of data, adapting itself to handle 1D or 2D data.
 
     Parameters
     ----------
