@@ -1,3 +1,4 @@
+import pathlib
 import uuid
 
 import numpy as np
@@ -70,3 +71,8 @@ def data_source_manager():
     manager.add_data_source(DummyDataSource())
     yield manager
     manager.stop()
+
+
+@pytest.fixture(scope="session")
+def test_data_path() -> pathlib.Path:
+    return pathlib.Path(__file__).parent / "runs"
