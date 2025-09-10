@@ -56,9 +56,8 @@ class KafkaDataSource(BlueskyDataSource):
         end_offsets = consumer.end_offsets(all_partitions)
         current_offset = list(end_offsets.values())[0]
 
+        sent_completed_status = False
         while not self._closed:
-            sent_completed_status = False
-
             for message in consumer:
                 if self._closed:
                     break
