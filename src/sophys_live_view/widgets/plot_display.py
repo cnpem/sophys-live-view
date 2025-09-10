@@ -210,7 +210,7 @@ class PlotDisplay(IPlotDisplay):
             x_axis_data,
             cached_data,
             ylabel=self._data_aggregator.get_signal_name(uid, detector_name),
-            legend=detector_name + " - " + stream_name + " - " + uid,
+            legend=detector_name + " - " + stream_name + "   (" + uid + ")",
         )
 
     def _configure_2d_scatter_tab(
