@@ -10,7 +10,7 @@ from .interfaces import IPlotDisplay
 
 
 class DataAggregator(QObject):
-    new_data_received = Signal()
+    new_data_received = Signal(str)  # subuid
 
     def __init__(self, new_stream_signal: Signal, new_data_signal: Signal):
         """
@@ -72,7 +72,7 @@ class DataAggregator(QObject):
                     self._data_cache[subuid][detector_name], detector_values
                 )
 
-        self.new_data_received.emit()
+        self.new_data_received.emit(subuid)
 
 
 class PlotDisplay(IPlotDisplay):
@@ -135,7 +135,7 @@ class PlotDisplay(IPlotDisplay):
             data_source_manager.new_data_stream,
             data_source_manager.new_data_received,
         )
-        self._data_aggregator.new_data_received.connect(self.update_plots)
+        self._data_aggregator.new_data_received.connect(self._update_plots_maybe)
 
         # NOTE: Here we have kind of a race condition: We need the change_stream_signal
         # connection, but it must happen before the other ones, so that the signal selector
@@ -149,6 +149,11 @@ class PlotDisplay(IPlotDisplay):
         )
 
         self._plots.currentChanged.connect(self._on_plot_tab_changed)
+
+    def _update_plots_maybe(self, changed_uid: str):
+        uids = set(i[0] for i in self._current_uids)
+        if changed_uid in uids:
+            self.update_plots()
 
     def update_plots(self):
         self.change_current_streams(self._current_uids)
