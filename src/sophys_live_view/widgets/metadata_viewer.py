@@ -57,7 +57,10 @@ class MetadataViewer(IMetadataViewer):
             )
             metadata_page.horizontalHeader().setStretchLastSection(True)
 
-            for metadata_key, metadata_value in self._stream_metadata[uid].items():
+            metadata_sorted = sorted(
+                self._stream_metadata[uid].items(), key=lambda i: i[0]
+            )
+            for metadata_key, metadata_value in metadata_sorted:
                 if (
                     metadata_key == "configuration"
                 ):  # NOTE: Force 'configuration' to be at the end.

@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 from qtpy.QtWidgets import QApplication
 
@@ -43,7 +44,7 @@ def entrypoint():
 
         subprocess.Popen(f"py-spy record -o profile.svg --pid {os.getpid()}".split())
 
-    app = QApplication()
+    app = QApplication(sys.argv)
 
     kafka_data_source = KafkaDataSource(
         args.topic, [args.bootstrap], hour_offset=args.hour_offset
