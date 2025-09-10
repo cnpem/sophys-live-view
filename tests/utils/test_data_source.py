@@ -33,3 +33,14 @@ def test_bluesky_load_from_json(file_name, event_count, test_data_path, qtbot):
     with qtbot.waitSignals([manager.new_data_received] * event_count, timeout=2000):
         with qtbot.waitSignal(manager.new_data_stream, timeout=1000):
             manager.start()
+
+
+def test_data_source_after_start(test_data_path, qtbot):
+    manager = DataSourceManager()
+
+    manager.start()
+
+    data_source = JSONDataSource(str(test_data_path / "count_with_rand.json"))
+    with qtbot.waitSignals([manager.new_data_received] * 50, timeout=2000):
+        with qtbot.waitSignal(manager.new_data_stream, timeout=1000):
+            manager.add_data_source(data_source)
