@@ -175,21 +175,21 @@ class PlotDisplay(IPlotDisplay):
             signals = self._data_aggregator.get_signals(uid)
 
             if self._plots.widget(0).isVisible():
-                for detector_name in signals:
+                for detector_name in sorted(signals):
                     if detector_name not in self._1d_y_axis_names[uid]:
                         continue
 
                     self._configure_1d_tab(uid, stream_name, detector_name, 0)
 
             if self._plots.widget(1).isVisible():
-                for detector_name in signals:
+                for detector_name in sorted(signals):
                     if detector_name not in self._2d_z_axis_names[uid]:
                         continue
 
                     self._configure_2d_scatter_tab(uid, stream_name, detector_name, 1)
 
             if self._plots.widget(2).isVisible():
-                for detector_name in signals:
+                for detector_name in sorted(signals):
                     if detector_name not in self._2d_z_axis_names[uid]:
                         continue
 
