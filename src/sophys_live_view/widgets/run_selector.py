@@ -115,7 +115,7 @@ class RunSelector(IRunSelector):
             self._progress_progress_bar.setVisible(False)
 
             self._finished_loading = True
-            if self._go_to_last_automatically:
+            if self._go_to_last_automatically and self._run_list.count() > 0:
                 self.select_item.emit(self._run_list.item(self._run_list.count() - 1))
         else:
             self._progress_label.setVisible(True)
