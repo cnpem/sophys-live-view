@@ -1,6 +1,8 @@
 from importlib.metadata import version
+from pathlib import Path
 
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QApplication, QMainWindow, QSplitter
 
 from ..utils.data_source_manager import DataSourceManager
@@ -19,6 +21,11 @@ class SophysLiveView(QMainWindow):
         self.resize(1200, 800)
         self.setWindowTitle(
             "sophys-live-view - version {}".format(version("sophys-live-view"))
+        )
+        self.setWindowIcon(
+            QIcon(
+                str(Path(__file__).resolve().parent / "_assets" / "app-icon-32x32.png")
+            )
         )
         self.setStyleSheet(".QSplitter { background-color: #ccccdd; }")
 
