@@ -27,4 +27,4 @@ jobs:
       - name: Install package
         run: pip install ".[all]" && pip install pyside6 pytest-xvfb
       - name: Run pytest
-        run: pytest -vvv
+        run: pytest -vvv -s --no-qt-log
