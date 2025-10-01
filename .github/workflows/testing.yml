@@ -22,9 +22,9 @@ jobs:
       - name: Setup system
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libxkbcommon-x11-0 libegl1-mesa-dev
+          sudo apt-get install -y xvfb libxcb-cursor0 libxkbcommon-x11-0 libegl1-mesa-dev
       - uses: actions/checkout@v4
       - name: Install package
         run: pip install ".[all]" && pip install pyside6 pytest-xvfb
       - name: Run pytest
-        run: pytest -vvv
+        run: pytest -vvv -s --no-qt-log
