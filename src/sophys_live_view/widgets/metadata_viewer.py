@@ -1,3 +1,5 @@
+from time import ctime
+
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
     QHeaderView,
@@ -35,6 +37,9 @@ class MetadataViewer(IMetadataViewer):
                         sub_key = sub_key[len(key_last_portion) + 1 :]
                     add_metadata_field(key + " - " + sub_key, sub_val, metadata_page)
                 return
+
+            if key == "time":
+                value = f"{value} | {ctime(round(value))}"
 
             key_item = QTableWidgetItem(str(key))
             key_item.setTextAlignment(
