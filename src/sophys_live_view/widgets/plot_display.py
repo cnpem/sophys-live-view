@@ -29,6 +29,7 @@ class DataAggregator(QObject):
         self._data_cache = defaultdict(lambda: defaultdict(lambda: np.array([[], []])))
         self._metadata_cache = defaultdict(lambda: dict())
         self._signals_name_map = defaultdict(lambda: dict())
+        self._custom_signals_map = defaultdict(lambda: dict())
 
         new_stream_signal.connect(self._on_new_stream)
         new_data_signal.connect(self._receive_new_data)
@@ -44,6 +45,18 @@ class DataAggregator(QObject):
 
     def get_signals(self, uid: str) -> set[str]:
         return set(self._data_cache[uid].keys())
+
+    def add_custom_signal(self, uid: str, name: str, expression: str):
+        self._custom_signals_map[uid][name] = expression
+
+        environment = {"np": np}
+        for detector, value in self._data_cache[uid].items():
+            environment[detector] = value
+
+        try:
+            self._data_cache[uid][name] = eval(expression, locals=environment)
+        except Exception:
+            print(f"The provided expression '{expression}' is not valid.")
 
     def _on_new_stream(
         self,
@@ -73,6 +86,9 @@ class DataAggregator(QObject):
                     self._data_cache[subuid][detector_name], detector_values
                 )
 
+        for name, expression in self._custom_signals_map[subuid].items():
+            self.add_custom_signal(subuid, name, expression)
+
         self.new_data_received.emit(subuid)
 
 
@@ -83,6 +99,7 @@ class PlotDisplay(IPlotDisplay):
         selected_streams_changed: Signal,
         selected_signals_changed_1d: Signal,
         selected_signals_changed_2d: Signal,
+        custom_signal_added: Signal,
         show_stats_by_default: bool = False,
     ):
         super().__init__()
@@ -149,6 +166,7 @@ class PlotDisplay(IPlotDisplay):
         selected_signals_changed_2d.connect(
             self._on_2d_signals_changed, Qt.ConnectionType.QueuedConnection
         )
+        custom_signal_added.connect(self._on_custom_signal_added)
 
         self._plots.currentChanged.connect(self._on_plot_tab_changed)
 
@@ -314,4 +332,8 @@ class PlotDisplay(IPlotDisplay):
             self._2d_y_axis_names[uid] = y_signal
             self._2d_z_axis_names[uid] = z_signals
 
+        self.update_plots()
+
+    def _on_custom_signal_added(self, uid: str, name: str, expression: str):
+        self._data_aggregator.add_custom_signal(uid, name, expression)
         self.update_plots()
