@@ -7,6 +7,7 @@ from silx.gui.colors import Colormap
 from silx.gui.plot.PlotWindow import Plot1D, Plot2D
 
 from .interfaces import IPlotDisplay
+from .plot_actions import DerivativeAction
 
 
 class DataAggregator(QObject):
@@ -109,6 +110,7 @@ class PlotDisplay(IPlotDisplay):
         self._plots = QTabWidget()
         _plot_1d = Plot1D()
         _plot_1d.setDefaultPlotPoints(True)
+        _plot_1d.toolBar().addAction(DerivativeAction(_plot_1d, _plot_1d))
         self._plots.addTab(_plot_1d, "1D")
 
         if show_stats_by_default:
