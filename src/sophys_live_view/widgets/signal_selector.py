@@ -2,7 +2,6 @@ from collections import defaultdict
 
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
-    QWidget,
     QButtonGroup,
     QCheckBox,
     QDialog,
@@ -12,12 +11,14 @@ from qtpy.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QRadioButton,
     QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
+    QWidget,
 )
 
 from .interfaces import ISignalSelector
@@ -165,7 +166,15 @@ class SignalSelector(ISignalSelector):
             return
 
         name, expr = custom_signal_selector.get_custom_signal_parameters()
-        self._add_custom_signal(uid, name, expr)
+        valid, exception = custom_signal_selector.validate_expression(expr)
+        if valid:
+            self._add_custom_signal(uid, name, expr)
+        else:
+            QMessageBox.critical(
+                self,
+                "Invalid expression!",
+                f"The inputted expression is invalid: \n{exception}",
+            )
 
 
 class SelectionTable1D(QTableWidget):
@@ -434,6 +443,7 @@ class CustomSignalCreator(QWidget):
         super().__init__()
 
         self._run_uid = run_uid
+        self._expr_signal_names = list(signals.keys())
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -470,3 +480,17 @@ class CustomSignalCreator(QWidget):
 
     def get_custom_signal_parameters(self):
         return self.signal_name_line.text(), self.signal_expr_line.text()
+
+    def validate_expression(self, expression) -> tuple[bool, Exception | None]:
+        import numpy as np
+
+        environment = {"np": np}
+        for detector in self._expr_signal_names:
+            environment[detector] = np.array([1, 2, 3])
+
+        try:
+            eval(expression, locals=environment)
+
+            return True, None
+        except Exception as e:
+            return False, e
