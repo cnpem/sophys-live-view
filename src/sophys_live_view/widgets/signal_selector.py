@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
+    QWidget,
     QButtonGroup,
     QCheckBox,
     QDialog,
@@ -142,39 +143,14 @@ class SignalSelector(ISignalSelector):
 
     def _custom_signal_button_clicked(self):
         uid = list(self._current_uids)[0]
+        signals = {k: self.get_signal_name(k) for k in self._signals[uid]}
 
         dialog = QDialog()
         layout = QVBoxLayout()
         dialog.setLayout(layout)
 
-        _w = QTableWidget(columnCount=2)
-        _w.setHorizontalHeaderLabels(["Display name", "Name inside the expression"])
-        _w.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        _w.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        _w.verticalHeader().setVisible(False)
-        for signal in sorted(self._signals[uid]):
-            row_index = _w.rowCount()
-            _w.insertRow(row_index)
-
-            _w.setItem(row_index, 0, QTableWidgetItem(self.get_signal_name(signal)))
-            _w.setItem(row_index, 1, QTableWidgetItem(signal))
-
-        layout.addWidget(_w)
-
-        _w = QFrame()
-        _l = QGridLayout()
-        _l.addWidget(QLabel("Signal name"), 0, 0, 1, 1)
-        signal_name_line = QLineEdit("test")
-        _l.addWidget(signal_name_line, 0, 1, 1, 1)
-        _l.addWidget(QLabel("Expression"), 1, 0, 1, 1)
-        signal_expr_line = QLineEdit()
-        signal_expr_line.setToolTip(
-            "Expression to calculate the signal value, as a Numpy array."
-        )
-        _l.addWidget(signal_expr_line, 1, 1, 1, 1)
-        _w.setLayout(_l)
-
-        layout.addWidget(_w)
+        custom_signal_selector = CustomSignalCreator(uid, signals)
+        layout.addWidget(custom_signal_selector)
 
         button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -183,14 +159,13 @@ class SignalSelector(ISignalSelector):
         button_box.rejected.connect(dialog.reject)
         layout.addWidget(button_box)
 
+        dialog.setFixedSize(450, 500)
+
         if dialog.exec() == QDialog.DialogCode.Rejected:
             return
 
-        self._add_custom_signal(
-            uid,
-            signal_name_line.text(),
-            signal_expr_line.text(),
-        )
+        name, expr = custom_signal_selector.get_custom_signal_parameters()
+        self._add_custom_signal(uid, name, expr)
 
 
 class SelectionTable1D(QTableWidget):
@@ -452,3 +427,46 @@ class SelectionTable2D(QTableWidget):
         self.selected_streams_changed.emit(
             self._selected_x_signal, self._selected_y_signal, self._selected_z_signals
         )
+
+
+class CustomSignalCreator(QWidget):
+    def __init__(self, run_uid: str, signals: dict[str, str]):
+        super().__init__()
+
+        self._run_uid = run_uid
+
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        _w = QTableWidget(columnCount=2)
+        _w.setHorizontalHeaderLabels(["Display name", "Name inside the expression"])
+        _w.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        _w.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        _w.verticalHeader().setVisible(False)
+
+        for signal in sorted(signals.keys()):
+            row_index = _w.rowCount()
+            _w.insertRow(row_index)
+
+            _w.setItem(row_index, 0, QTableWidgetItem(signals[signal]))
+            _w.setItem(row_index, 1, QTableWidgetItem(signal))
+
+        layout.addWidget(_w)
+
+        _w = QFrame()
+        _l = QGridLayout()
+        _l.addWidget(QLabel("Signal name"), 0, 0, 1, 1)
+        self.signal_name_line = QLineEdit("test")
+        _l.addWidget(self.signal_name_line, 0, 1, 1, 1)
+        _l.addWidget(QLabel("Expression"), 1, 0, 1, 1)
+        self.signal_expr_line = QLineEdit()
+        self.signal_expr_line.setToolTip(
+            "Expression to calculate the signal value, as a Numpy array."
+        )
+        _l.addWidget(self.signal_expr_line, 1, 1, 1, 1)
+        _w.setLayout(_l)
+
+        layout.addWidget(_w)
+
+    def get_custom_signal_parameters(self):
+        return self.signal_name_line.text(), self.signal_expr_line.text()
