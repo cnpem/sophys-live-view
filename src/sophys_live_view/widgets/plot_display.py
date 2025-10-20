@@ -232,6 +232,10 @@ class PlotDisplay(IPlotDisplay):
             return
         cached_data = self._data_aggregator.get_data(uid, detector_name)
 
+        # NOTE: Shorthand format for a static baseline
+        if isinstance(cached_data, (int, float)):
+            cached_data = np.full_like(x_axis_data, cached_data)
+
         if len(cached_data.shape) > 1:
             cached_data = np.trim_zeros(np.nan_to_num(cached_data.flatten()))
 
