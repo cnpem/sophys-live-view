@@ -32,6 +32,10 @@ class MetadataViewer(IMetadataViewer):
         def add_metadata_field(key, value, metadata_page):
             if isinstance(value, dict):
                 for sub_key, sub_val in value.items():
+                    # NOTE: Most likely a numpy array
+                    if isinstance(sub_key, bytes):
+                        continue
+
                     key_last_portion = key.split("-")[-1][1:]
                     if sub_key.startswith(key_last_portion):
                         sub_key = sub_key[len(key_last_portion) + 1 :]
