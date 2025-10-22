@@ -146,6 +146,7 @@ class SelectionTable1D(QTableWidget):
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
             )
             item.setData(Qt.ItemDataRole.UserRole, signal)
+            item.setFlags(~Qt.ItemFlag.ItemIsEditable)
             self.setItem(index, 0, item)
 
             x_axis_radio_button = QRadioButton()
@@ -259,6 +260,7 @@ class SelectionTable2D(QTableWidget):
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
             )
             item.setData(Qt.ItemDataRole.UserRole, signal)
+            item.setFlags(~Qt.ItemFlag.ItemIsEditable)
             self.setItem(index, 0, item)
 
             x_axis_radio_button = QRadioButton()
