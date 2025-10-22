@@ -220,6 +220,7 @@ class SelectionTable1D(QTableWidget):
                 _f.setItalic(True)
                 item.setFont(_f)
             item.setData(Qt.ItemDataRole.UserRole, signal)
+            item.setFlags(~Qt.ItemFlag.ItemIsEditable)
             self.setItem(index, 0, item)
 
             x_axis_radio_button = QRadioButton()
@@ -338,6 +339,7 @@ class SelectionTable2D(QTableWidget):
                 _f.setItalic(True)
                 item.setFont(_f)
             item.setData(Qt.ItemDataRole.UserRole, signal)
+            item.setFlags(~Qt.ItemFlag.ItemIsEditable)
             self.setItem(index, 0, item)
 
             x_axis_radio_button = QRadioButton()
