@@ -27,7 +27,7 @@ class DocumentParser(DocumentRouter):
         fields = set()
         fields_name_map = dict()
         for field, field_info in doc["data_keys"].items():
-            if "units" in field_info:
+            if "units" in field_info and field_info["units"] != "":
                 fields_name_map[field] = "{} ({})".format(field, field_info["units"])
 
             fields.add(field)
