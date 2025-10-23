@@ -68,3 +68,21 @@ def test_change_signals_1d(data_source_manager, selector, signals_mocker, qtbot)
     assert blocker.args[0] == "timestamp", blocker.args
     assert "det" in blocker.args[1], blocker.args
     assert "timestamp" in blocker.args[1], blocker.args
+
+
+def test_add_custom_signal(data_source_manager, selector, qtbot):
+    uids_and_names = []
+
+    data_source_manager.new_data_stream.connect(
+        lambda uid, subuid, display_name, *_: uids_and_names.append(
+            (subuid, display_name)
+        )
+    )
+    with qtbot.waitSignals([data_source_manager.new_data_stream] * 2, timeout=1000):
+        data_source_manager.start()
+
+    with qtbot.waitSignal(selector.custom_signal_added, timeout=1000):
+        selector._add_custom_signal(uids_and_names[0][0], "test", "123")
+
+    assert "test" in selector.uids_with_signal
+    assert uids_and_names[0][0] in selector.uids_with_signal["test"]
