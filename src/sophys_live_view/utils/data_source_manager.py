@@ -25,6 +25,7 @@ class DataSourceManager(QThread):
     new_data_received = Signal(
         str, str, dict, dict
     )  # uid, subuid, {signal : data}, {signal : metadata}
+    data_stream_closed = Signal(str, str)  # uid, subuid
     go_to_last_automatically = Signal(str, bool)  # uid, state
     loading_status = Signal(
         str, str, float
@@ -53,6 +54,11 @@ class DataSourceManager(QThread):
                 self.new_data_received.emit(data_source_uid, uid, *args)
 
             data_source.new_data_received.connect(new_data_received_wrapper)
+
+            def data_stream_closed_wrapper(uid, *args):
+                self.data_stream_closed.emit(data_source_uid, uid, *args)
+
+            data_source.data_stream_closed.connect(data_stream_closed_wrapper)
 
             def go_to_last_automatically_wrapper(*args):
                 self.go_to_last_automatically.emit(data_source_uid, *args)
