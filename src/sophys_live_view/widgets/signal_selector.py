@@ -17,6 +17,7 @@ from qtpy.QtWidgets import (
     QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
@@ -154,10 +155,13 @@ class SignalSelector(ISignalSelector):
         layout.addWidget(custom_signal_selector)
 
         button_box = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Ok
+            | QDialogButtonBox.StandardButton.Cancel
+            | QDialogButtonBox.StandardButton.Help
         )
         button_box.accepted.connect(dialog.accept)
         button_box.rejected.connect(dialog.reject)
+        button_box.helpRequested.connect(custom_signal_selector.toggle_help)
         layout.addWidget(button_box)
 
         dialog.setFixedSize(450, 500)
@@ -438,15 +442,17 @@ class SelectionTable2D(QTableWidget):
         )
 
 
-class CustomSignalCreator(QWidget):
+class CustomSignalCreator(QStackedWidget):
     def __init__(self, run_uid: str, signals: dict[str, str]):
         super().__init__()
 
         self._run_uid = run_uid
         self._expr_signal_names = list(signals.keys())
 
+        main = QWidget()
         layout = QVBoxLayout()
-        self.setLayout(layout)
+        main.setLayout(layout)
+        self.addWidget(main)
 
         _w = QTableWidget(columnCount=2)
         _w.setHorizontalHeaderLabels(["Display name", "Name inside the expression"])
@@ -478,6 +484,31 @@ class CustomSignalCreator(QWidget):
 
         layout.addWidget(_w)
 
+        help = QWidget()
+        layout = QVBoxLayout()
+        help.setLayout(layout)
+        self.addWidget(help)
+
+        text_area = QTextEdit(
+            """
+This interface can add arbitrary expressions to the plot, calculated using other signals as reference.
+<br><br>
+Any expression that generates a numpy array of the appropriate size can be added.
+<br><br>
+For instance, to generate a copy of a signal <code>abc</code> we can input the
+expression <code>abc</code>, and for a version with all its values doubled in magnitude, an
+expression like <code>2*abc</code> would work.
+<br><br>
+Other examples:
+<br><br>
+Using numpy: <code>np.gradient(abc, edge_order=2)</code>
+<br>
+Multiple inputs: <code>abc - np.log(xyz)</code>
+""",
+            readOnly=True,
+        )
+        layout.addWidget(text_area)
+
     def get_custom_signal_parameters(self):
         return self.signal_name_line.text(), self.signal_expr_line.text()
 
@@ -494,3 +525,6 @@ class CustomSignalCreator(QWidget):
             return True, None
         except Exception as e:
             return False, e
+
+    def toggle_help(self):
+        self.setCurrentIndex((self.currentIndex() + 1) % 2)
