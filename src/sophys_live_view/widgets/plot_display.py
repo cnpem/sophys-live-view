@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 import numpy as np
-from qtpy.QtCore import QObject, Qt, Signal
+from qtpy.QtCore import QObject, Qt, QTimer, Signal
 from qtpy.QtWidgets import QLabel, QStackedWidget, QTabWidget, QVBoxLayout
 from silx.gui.colors import Colormap
 from silx.gui.plot.PlotWindow import Plot1D, Plot2D
@@ -152,12 +152,20 @@ class PlotDisplay(IPlotDisplay):
 
         self._plots.currentChanged.connect(self._on_plot_tab_changed)
 
+        self._plot_update_timer = QTimer()
+        self._plot_update_timer.setSingleShot(True)
+        self._plot_update_timer.setInterval(50)
+        self._plot_update_timer.timeout.connect(self._update_plots)
+
     def _update_plots_maybe(self, changed_uid: str):
         uids = set(i[0] for i in self._current_uids)
         if changed_uid in uids:
             self.update_plots()
 
     def update_plots(self):
+        self._plot_update_timer.start()
+
+    def _update_plots(self):
         self.change_current_streams(self._current_uids)
 
     def change_current_streams(self, new_uids_and_names: list[tuple[str, str]]):
