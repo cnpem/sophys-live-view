@@ -59,6 +59,7 @@ class SignalSelector(ISignalSelector):
         self._signal_selection_stack.addWidget(self._2d_signal_selection_table)
 
         self._custom_signal_button = QPushButton("Add custom signal...")
+        self._custom_signal_button.setVisible(False)
         self._custom_signal_button.clicked.connect(self._custom_signal_button_clicked)
         layout.addWidget(self._custom_signal_button)
 
