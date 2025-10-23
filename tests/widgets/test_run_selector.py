@@ -12,14 +12,16 @@ def selector(data_source_manager, qtbot):
 
 
 def test_run_selector_basic_load(selector, data_source_manager, qtbot):
-    assert selector._run_list.count() == 0
+    assert selector._run_list_model.rowCount() == 0
 
     with qtbot.waitSignals([data_source_manager.new_data_stream] * 2, timeout=1000):
         data_source_manager.start()
 
-    assert selector._run_list.count() == 2
-    assert selector._run_list.item(0).text() == "abc"
-    assert selector._run_list.item(1).text() == "ghi"
+    assert selector._run_list_model.rowCount() == 2
+    index = selector._run_list_model.index(0)
+    assert selector._run_list_model.data(index) == "abc"
+    index = selector._run_list_model.index(1)
+    assert selector._run_list_model.data(index) == "ghi"
 
 
 def test_run_selector_select_one(selector, data_source_manager, qtbot):
@@ -27,9 +29,8 @@ def test_run_selector_select_one(selector, data_source_manager, qtbot):
         data_source_manager.start()
 
     with qtbot.waitSignal(selector.selected_streams_changed, timeout=1000) as blocker:
-        selector._run_list.setCurrentRow(
-            1, QItemSelectionModel.SelectionFlag.ClearAndSelect
-        )
+        index = selector._run_list_model.index(1)
+        selector._run_list_view.setCurrentIndex(index)
     assert len(blocker.args[0]) == 1, blocker.args[0]
     assert blocker.args[0][0][1] == "ghi", blocker.args[0]
 
@@ -38,12 +39,10 @@ def test_run_selector_select_multiple(selector, data_source_manager, qtbot):
     with qtbot.waitSignals([data_source_manager.new_data_stream] * 2, timeout=1000):
         data_source_manager.start()
 
-    selection_model = selector._run_list.selectionModel()
+    selection_model = selector._run_list_view.selectionModel()
 
     def select(row: int, flag: QItemSelectionModel.SelectionFlag):
-        selection_model.select(
-            selector._run_list.indexFromItem(selector._run_list.item(row)), flag
-        )
+        selection_model.select(selector._run_list_model.index(row), flag)
 
     with qtbot.waitSignal(selector.selected_streams_changed, timeout=1000):
         select(0, QItemSelectionModel.SelectionFlag.SelectCurrent)
