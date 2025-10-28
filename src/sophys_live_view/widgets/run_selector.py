@@ -82,6 +82,11 @@ class RunSelector(IRunSelector):
     ):
         self._run_list_model.add_stream(uid, subuid, display_name)
 
+        if self._finished_loading and self._go_to_last_automatically:
+            self.select_item.emit(
+                self._run_list_model.index(self._run_list_model.rowCount() - 1)
+            )
+
     def _close_stream(
         self,
         uid: str,
