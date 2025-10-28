@@ -180,9 +180,13 @@ class RunListModel(QAbstractListModel):
         self.rowsInserted.emit(QModelIndex(), old_number_of_items, old_number_of_items)
 
     def close_stream(self, uid: str, subuid: str):
-        for run in reversed(self._runs):
+        for rev_index, run in enumerate(reversed(self._runs)):
             if run.uid == uid and run.subuid == subuid:
                 run.loading = False
+
+                index = self.index(self.rowCount() - rev_index)
+                self.dataChanged.emit(index, index)
+
                 break
 
     def rowCount(self, parent: QModelIndex | None = None):  # noqa: N802
