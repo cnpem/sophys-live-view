@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
-from .interfaces import ISignalSelector
+from .interfaces import CUSTOM_SIGNALS_ENVIRONMENT, ISignalSelector
 
 
 class SignalSelector(ISignalSelector):
@@ -505,9 +505,14 @@ Other examples:
 Using numpy: <code>np.gradient(abc, edge_order=2)</code>
 <br>
 Multiple inputs: <code>abc - np.log(xyz)</code>
+<br><br><br>
+Aside from the direct usage of <code>np</code>, for convenience, the following operations are also available:
+<br><br>
+<code>log | log10 | (a)sin | (a)cos | (a)tan</code>
 """,
             readOnly=True,
         )
+        text_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         layout.addWidget(text_area)
 
     def get_custom_signal_parameters(self):
@@ -516,7 +521,7 @@ Multiple inputs: <code>abc - np.log(xyz)</code>
     def validate_expression(self, expression) -> tuple[bool, Exception | None]:
         import numpy as np
 
-        environment = {"np": np}
+        environment = CUSTOM_SIGNALS_ENVIRONMENT
         for detector in self._expr_signal_names:
             environment[detector] = np.array([1, 2, 3])
 

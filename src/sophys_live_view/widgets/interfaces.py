@@ -1,5 +1,6 @@
 from abc import abstractmethod
 
+import numpy as np
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QWidget
 
@@ -103,3 +104,16 @@ class IPlotDisplay(QWidget):
     """
 
     plot_tab_changed = Signal(str)  # new tab name
+
+
+CUSTOM_SIGNALS_ENVIRONMENT = {
+    "np": np,
+    "log": np.log,
+    "log10": np.log10,
+    "sin": np.sin,
+    "asin": np.asin,
+    "cos": np.cos,
+    "acos": np.acos,
+    "tan": np.tan,
+    "atan": np.atan,
+}

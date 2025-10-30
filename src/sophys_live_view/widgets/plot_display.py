@@ -6,7 +6,7 @@ from qtpy.QtWidgets import QLabel, QStackedWidget, QTabWidget, QVBoxLayout
 from silx.gui.colors import Colormap
 from silx.gui.plot.PlotWindow import Plot1D, Plot2D
 
-from .interfaces import IPlotDisplay
+from .interfaces import CUSTOM_SIGNALS_ENVIRONMENT, IPlotDisplay
 from .plot_actions import DerivativeAction
 
 
@@ -49,7 +49,7 @@ class DataAggregator(QObject):
     def add_custom_signal(self, uid: str, name: str, expression: str):
         self._custom_signals_map[uid][name] = expression
 
-        environment = {"np": np}
+        environment = CUSTOM_SIGNALS_ENVIRONMENT
         for detector, value in self._data_cache[uid].items():
             environment[detector] = value
 
