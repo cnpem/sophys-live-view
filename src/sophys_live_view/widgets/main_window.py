@@ -43,6 +43,7 @@ class SophysLiveView(QMainWindow):
             self.run_selector.selected_streams_changed,
             self.signal_selector.selected_signals_changed_1d,
             self.signal_selector.selected_signals_changed_2d,
+            self.signal_selector.custom_signal_added,
             show_stats_by_default,
         )
 
