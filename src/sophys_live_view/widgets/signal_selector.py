@@ -4,20 +4,32 @@ from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
     QButtonGroup,
     QCheckBox,
+    QDialog,
+    QDialogButtonBox,
+    QFrame,
+    QGridLayout,
     QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
     QRadioButton,
     QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
+    QTextEdit,
     QVBoxLayout,
+    QWidget,
 )
 
-from .interfaces import ISignalSelector
+from .interfaces import CUSTOM_SIGNALS_ENVIRONMENT, ISignalSelector
 
 
 class SignalSelector(ISignalSelector):
     def __init__(self, data_source_manager, selected_streams_changed: Signal):
         super().__init__()
+
+        self._current_uids = set()
 
         self._signals = dict()
         self._signals_name_map = dict()
@@ -46,6 +58,11 @@ class SignalSelector(ISignalSelector):
         )
         self._signal_selection_stack.addWidget(self._2d_signal_selection_table)
 
+        self._custom_signal_button = QPushButton("Add custom signal...")
+        self._custom_signal_button.setVisible(False)
+        self._custom_signal_button.clicked.connect(self._custom_signal_button_clicked)
+        layout.addWidget(self._custom_signal_button)
+
         data_source_manager.new_data_stream.connect(self._add_new_signal)
         selected_streams_changed.connect(self.change_current_streams)
 
@@ -58,6 +75,9 @@ class SignalSelector(ISignalSelector):
         for uid, _ in new_uids_and_names:
             new_signals |= self._signals[uid]
             new_uids.add(uid)
+
+        self._current_uids = new_uids
+        self._custom_signal_button.setVisible(len(new_uids) == 1)
 
         if len(new_uids) == 1:
             self.default_independent_signals = self._default_independent_signals.get(
@@ -80,6 +100,9 @@ class SignalSelector(ISignalSelector):
 
         self._1d_signal_selection_table.configure_signals(new_uids, new_signals)
         self._2d_signal_selection_table.configure_signals(new_uids, new_signals)
+
+    def reload(self):
+        self.change_current_streams([(i, None) for i in self._current_uids])
 
     def get_signal_name(self, signal: str):
         # FIXME: Properly handle different names in each uid
@@ -108,9 +131,55 @@ class SignalSelector(ISignalSelector):
         for signal in signals:
             self.uids_with_signal[signal].add(subuid)
 
+    def _add_custom_signal(self, uid: str, signal_name: str, signal_expression: str):
+        self._signals[uid].add(signal_name)
+        self._signals_name_map[uid][signal_name] = signal_name + " (custom)"
+        self.uids_with_signal[signal_name].add(uid)
+
+        self.custom_signal_added.emit(uid, signal_name, signal_expression)
+
+        self.reload()
+
     def _change_tab(self, new_tab_name: str):
         name_to_index = {"1D": 0, "2D - Scatter": 1, "2D - Grid": 1}
         self._signal_selection_stack.setCurrentIndex(name_to_index[new_tab_name])
+
+    def _custom_signal_button_clicked(self):
+        uid = list(self._current_uids)[0]
+        signals = {k: self.get_signal_name(k) for k in self._signals[uid]}
+
+        dialog = QDialog()
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+
+        custom_signal_selector = CustomSignalCreator(uid, signals)
+        layout.addWidget(custom_signal_selector)
+
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok
+            | QDialogButtonBox.StandardButton.Cancel
+            | QDialogButtonBox.StandardButton.Help
+        )
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        button_box.helpRequested.connect(custom_signal_selector.toggle_help)
+        layout.addWidget(button_box)
+
+        dialog.setFixedSize(450, 500)
+
+        if dialog.exec() == QDialog.DialogCode.Rejected:
+            return
+
+        name, expr = custom_signal_selector.get_custom_signal_parameters()
+        valid, exception = custom_signal_selector.validate_expression(expr)
+        if valid:
+            self._add_custom_signal(uid, name, expr)
+        else:
+            QMessageBox.critical(
+                self,
+                "Invalid expression!",
+                f"The inputted expression is invalid: \n{exception}",
+            )
 
 
 class SelectionTable1D(QTableWidget):
@@ -141,10 +210,15 @@ class SelectionTable1D(QTableWidget):
         for index, signal in enumerate(sorted_signals_list):
             self.insertRow(index)
 
-            item = QTableWidgetItem(self._parent.get_signal_name(signal))
+            signal_name = self._parent.get_signal_name(signal)
+            item = QTableWidgetItem(signal_name)
             item.setTextAlignment(
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
             )
+            if "(custom)" in signal_name:
+                _f = item.font()
+                _f.setItalic(True)
+                item.setFont(_f)
             item.setData(Qt.ItemDataRole.UserRole, signal)
             self.setItem(index, 0, item)
 
@@ -254,10 +328,15 @@ class SelectionTable2D(QTableWidget):
         for index, signal in enumerate(sorted_signals_list):
             self.insertRow(index)
 
-            item = QTableWidgetItem(self._parent.get_signal_name(signal))
+            signal_name = self._parent.get_signal_name(signal)
+            item = QTableWidgetItem(signal_name)
             item.setTextAlignment(
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
             )
+            if "(custom)" in signal_name:
+                _f = item.font()
+                _f.setItalic(True)
+                item.setFont(_f)
             item.setData(Qt.ItemDataRole.UserRole, signal)
             self.setItem(index, 0, item)
 
@@ -362,3 +441,96 @@ class SelectionTable2D(QTableWidget):
         self.selected_streams_changed.emit(
             self._selected_x_signal, self._selected_y_signal, self._selected_z_signals
         )
+
+
+class CustomSignalCreator(QStackedWidget):
+    def __init__(self, run_uid: str, signals: dict[str, str]):
+        super().__init__()
+
+        self._run_uid = run_uid
+        self._expr_signal_names = list(signals.keys())
+
+        main = QWidget()
+        layout = QVBoxLayout()
+        main.setLayout(layout)
+        self.addWidget(main)
+
+        _w = QTableWidget(columnCount=2)
+        _w.setHorizontalHeaderLabels(["Display name", "Name inside the expression"])
+        _w.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        _w.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        _w.verticalHeader().setVisible(False)
+
+        for signal in sorted(signals.keys()):
+            row_index = _w.rowCount()
+            _w.insertRow(row_index)
+
+            _w.setItem(row_index, 0, QTableWidgetItem(signals[signal]))
+            _w.setItem(row_index, 1, QTableWidgetItem(signal))
+
+        layout.addWidget(_w)
+
+        _w = QFrame()
+        _l = QGridLayout()
+        _l.addWidget(QLabel("Signal name"), 0, 0, 1, 1)
+        self.signal_name_line = QLineEdit("test")
+        _l.addWidget(self.signal_name_line, 0, 1, 1, 1)
+        _l.addWidget(QLabel("Expression"), 1, 0, 1, 1)
+        self.signal_expr_line = QLineEdit()
+        self.signal_expr_line.setToolTip(
+            "Expression to calculate the signal value, as a Numpy array."
+        )
+        _l.addWidget(self.signal_expr_line, 1, 1, 1, 1)
+        _w.setLayout(_l)
+
+        layout.addWidget(_w)
+
+        help = QWidget()
+        layout = QVBoxLayout()
+        help.setLayout(layout)
+        self.addWidget(help)
+
+        text_area = QTextEdit(
+            """
+This interface can add arbitrary expressions to the plot, calculated using other signals as reference.
+<br><br>
+Any expression that generates a numpy array of the appropriate size can be added.
+<br><br>
+For instance, to generate a copy of a signal <code>abc</code> we can input the
+expression <code>abc</code>, and for a version with all its values doubled in magnitude, an
+expression like <code>2*abc</code> would work.
+<br><br>
+Other examples:
+<br><br>
+Using numpy: <code>np.gradient(abc, edge_order=2)</code>
+<br>
+Multiple inputs: <code>abc - np.log(xyz)</code>
+<br><br><br>
+Aside from the direct usage of <code>np</code>, for convenience, the following operations are also available:
+<br><br>
+<code>log | log10 | (a)sin | (a)cos | (a)tan</code>
+""",
+            readOnly=True,
+        )
+        text_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        layout.addWidget(text_area)
+
+    def get_custom_signal_parameters(self):
+        return self.signal_name_line.text(), self.signal_expr_line.text()
+
+    def validate_expression(self, expression) -> tuple[bool, Exception | None]:
+        import numpy as np
+
+        environment = CUSTOM_SIGNALS_ENVIRONMENT
+        for detector in self._expr_signal_names:
+            environment[detector] = np.array([1, 2, 3])
+
+        try:
+            eval(expression, locals=environment)
+
+            return True, None
+        except Exception as e:
+            return False, e
+
+    def toggle_help(self):
+        self.setCurrentIndex((self.currentIndex() + 1) % 2)

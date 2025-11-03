@@ -1,5 +1,6 @@
 from abc import abstractmethod
 
+import numpy as np
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QWidget
 
@@ -65,6 +66,7 @@ class ISignalSelector(QWidget):
 
     selected_signals_changed_1d = Signal(str, set)  # X, Y
     selected_signals_changed_2d = Signal(str, str, set)  # X, Y, Z
+    custom_signal_added = Signal(str, str, str)  # uid, name, expression
 
     @abstractmethod
     def set_plot_tab_changed_signal(self, signal: Signal):
@@ -95,8 +97,23 @@ class IPlotDisplay(QWidget):
         The signal that will be emitted with a new 1D signals configuration.
     selected_signals_changed_2d : Signal
         The signal that will be emitted with a new 2D signals configuration.
+    custom_signal_added : Signal
+        The signal that will be emitted with the name and expression of the new custom signal.
     show_stats_by_default : bool, optional
         Whether to show a widget with curve statistics by default on the 1D plot.
     """
 
     plot_tab_changed = Signal(str)  # new tab name
+
+
+CUSTOM_SIGNALS_ENVIRONMENT = {
+    "np": np,
+    "log": np.log,
+    "log10": np.log10,
+    "sin": np.sin,
+    "asin": np.asin,
+    "cos": np.cos,
+    "acos": np.acos,
+    "tan": np.tan,
+    "atan": np.atan,
+}
