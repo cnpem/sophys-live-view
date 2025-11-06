@@ -54,7 +54,7 @@ class DocumentParser(DocumentRouter):
         self.on_new_event(descriptor_uid, values, timestamp, seq_num)
 
     def stop(self, doc: RunStop):
-        pass
+        self.on_run_ended(doc["run_start"])
 
     @abstractmethod
     def on_new_run_started(self, display_name: str, metadata: dict):
@@ -76,6 +76,10 @@ class DocumentParser(DocumentRouter):
     def on_new_event(
         self, descriptor_uid: str, values: dict, timestamp: float, seq_num: int
     ):
+        pass
+
+    @abstractmethod
+    def on_run_ended(self, start_uid):
         pass
 
 
@@ -170,6 +174,9 @@ class BlueskyDataSource(DataSource, DocumentParser):
         received_data["seq_num"] = np.array([seq_num])
 
         self.new_data_received.emit(start_uid, received_data, metadata)
+
+    def on_run_ended(self, start_uid):
+        self.data_stream_closed.emit(start_uid)
 
     def __getattribute__(self, attr_name):
         if attr_name == "start":

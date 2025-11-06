@@ -12,6 +12,7 @@ class DataSource(QThread):
     new_data_received = Signal(
         str, dict, dict
     )  # uid, {signal : data}, {signal : metadata}
+    data_stream_closed = Signal(str)  # uid
     go_to_last_automatically = Signal(bool)  # Whether to auto-update the display or not
     loading_status = Signal(str, float)  # status message, completion percentage
 

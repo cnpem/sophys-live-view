@@ -50,6 +50,7 @@ class RunSelector(IRunSelector):
         layout.addWidget(self._file_import_button)
 
         data_source_manager.new_data_stream.connect(self._add_stream)
+        data_source_manager.data_stream_closed.connect(self._close_stream)
         data_source_manager.go_to_last_automatically.connect(self._set_go_to_last)
         data_source_manager.loading_status.connect(self._new_loading_status)
         self._run_list_view.selectionModel().selectionChanged.connect(
@@ -85,6 +86,13 @@ class RunSelector(IRunSelector):
             self.select_item.emit(
                 self._run_list_model.index(self._run_list_model.rowCount() - 1)
             )
+
+    def _close_stream(
+        self,
+        uid: str,
+        subuid: str,
+    ):
+        self._run_list_model.close_stream(uid, subuid)
 
     @Slot(QModelIndex)
     def on_select_item(self, index: QModelIndex):
@@ -140,12 +148,14 @@ class RunItem:
     display_name: str
 
     bookmarked: bool = False
+    loading: bool = False
 
 
 class RunListModel(QAbstractListModel):
     UID_ROLE = Qt.ItemDataRole.UserRole
     SUBUID_ROLE = Qt.ItemDataRole.UserRole + 1
     BOOKMARK_ROLE = Qt.ItemDataRole.UserRole + 2
+    LOADING_ROLE = Qt.ItemDataRole.UserRole + 3
 
     def __init__(self):
         super().__init__()
@@ -154,6 +164,7 @@ class RunListModel(QAbstractListModel):
 
         self.star_unfilled_icon = qta.icon("fa6.star", scale_factor=0.8)
         self.star_filled_icon = qta.icon("fa6s.star", color="orange", scale_factor=0.8)
+        self.loading_icon = qta.icon("fa6s.spinner", scale_factor=0.8)
 
     def add_stream(
         self,
@@ -165,8 +176,18 @@ class RunListModel(QAbstractListModel):
         self.rowsAboutToBeInserted.emit(
             QModelIndex(), old_number_of_items, old_number_of_items
         )
-        self._runs.append(RunItem(uid, subuid, display_name))
+        self._runs.append(RunItem(uid, subuid, display_name, loading=True))
         self.rowsInserted.emit(QModelIndex(), old_number_of_items, old_number_of_items)
+
+    def close_stream(self, uid: str, subuid: str):
+        for rev_index, run in enumerate(reversed(self._runs)):
+            if run.uid == uid and run.subuid == subuid:
+                run.loading = False
+
+                index = self.index(self.rowCount() - rev_index)
+                self.dataChanged.emit(index, index)
+
+                break
 
     def rowCount(self, parent: QModelIndex | None = None):  # noqa: N802
         return len(self._runs)
@@ -177,11 +198,16 @@ class RunListModel(QAbstractListModel):
             case Qt.ItemDataRole.DisplayRole:
                 return item.display_name
             case Qt.ItemDataRole.DecorationRole:
-                return (
+                icon = (
                     self.star_filled_icon
                     if item.bookmarked
                     else self.star_unfilled_icon
                 )
+
+                if item.loading:
+                    icon = self.loading_icon
+
+                return icon
             case Qt.ItemDataRole.SizeHintRole:
                 return QSize(22, 22)
             case Qt.ItemDataRole.ToolTipRole:
@@ -192,6 +218,8 @@ class RunListModel(QAbstractListModel):
                 return item.subuid
             case RunListModel.BOOKMARK_ROLE:
                 return item.bookmarked
+            case RunListModel.LOADING_ROLE:
+                return item.loading
             case _:
                 return None
 
@@ -200,6 +228,8 @@ class RunListModel(QAbstractListModel):
         match role:
             case RunListModel.BOOKMARK_ROLE:
                 item.bookmarked = bool(data)
+            case RunListModel.LOADING_ROLE:
+                item.loading = bool(data)
             case _:
                 return True
 
