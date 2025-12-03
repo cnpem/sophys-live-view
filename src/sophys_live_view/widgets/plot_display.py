@@ -54,7 +54,7 @@ class DataAggregator(QObject):
             environment[detector] = value
 
         try:
-            self._data_cache[uid][name] = eval(expression, locals=environment)
+            self._data_cache[uid][name] = eval(expression, None, environment)
         except Exception:
             print(f"The provided expression '{expression}' is not valid.")
 
