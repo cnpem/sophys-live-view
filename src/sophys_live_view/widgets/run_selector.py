@@ -233,5 +233,5 @@ class RunListModel(QAbstractListModel):
             case _:
                 return True
 
-        self.dataChanged.emit(index, index, role)
+        self.dataChanged.emit(index, index, [role])
         return True

@@ -1,7 +1,7 @@
 import pytest
 from qtpy.QtCore import QItemSelectionModel
 
-from sophys_live_view.widgets.run_selector import RunSelector
+from sophys_live_view.widgets.run_selector import RunListModel, RunSelector
 
 
 @pytest.fixture
@@ -53,3 +53,16 @@ def test_run_selector_select_multiple(selector, data_source_manager, qtbot):
     assert len(args[0]) == 2, args[0]
     assert args[0][0][1] == "abc", args[0]
     assert args[0][1][1] == "ghi", args[0]
+
+
+def test_run_selector_bookmark(selector, data_source_manager, qtbot):
+    with qtbot.waitSignals([data_source_manager.new_data_stream] * 2, timeout=1000):
+        data_source_manager.start()
+
+    index = selector._run_list_model.index(1)
+
+    assert not selector._run_list_model.data(index, RunListModel.BOOKMARK_ROLE)
+    selector.toggle_bookmark(index)
+    assert selector._run_list_model.data(index, RunListModel.BOOKMARK_ROLE)
+    selector.toggle_bookmark(index)
+    assert not selector._run_list_model.data(index, RunListModel.BOOKMARK_ROLE)
