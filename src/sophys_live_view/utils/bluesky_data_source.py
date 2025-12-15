@@ -90,6 +90,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
 
         self._run_metadata = dict()
         self._descriptors = dict()
+        self._descriptors_for_start_uid = defaultdict(lambda: set())
 
     def on_new_run_started(self, display_name: str, metadata: dict):
         uid = metadata["uid"]
@@ -109,12 +110,12 @@ class BlueskyDataSource(DataSource, DocumentParser):
         fields_name_map: dict[str, str],
         extra_metadata: dict[str, dict[str, typing.Any]],
     ):
-        # TODO: Support other streams
-        if descriptor_name != "primary":
-            return
-
         fields.add("time")
         fields.add("seq_num")
+
+        # Error: Received a descriptor before a start document.
+        if start_uid not in self._run_metadata:
+            return
         self._run_metadata[start_uid]["fields"] = fields
 
         fields_name_map["time"] = "time (s)"
@@ -132,10 +133,11 @@ class BlueskyDataSource(DataSource, DocumentParser):
         metadata["configuration"] = extra_metadata
 
         self._descriptors[descriptor_uid] = start_uid
+        self._descriptors_for_start_uid[start_uid].add(descriptor_uid)
 
         self.new_data_stream.emit(
-            start_uid,
-            self._run_metadata[start_uid]["name"],
+            start_uid + descriptor_uid,
+            self._run_metadata[start_uid]["name"] + " (" + descriptor_name + ")",
             fields,
             fields_name_map,
             detectors,
@@ -173,10 +175,11 @@ class BlueskyDataSource(DataSource, DocumentParser):
         received_data["time"] = np.array([timestamp]) - start_metadata.get("time", 0)
         received_data["seq_num"] = np.array([seq_num])
 
-        self.new_data_received.emit(start_uid, received_data, metadata)
+        self.new_data_received.emit(start_uid + descriptor_uid, received_data, metadata)
 
     def on_run_ended(self, start_uid):
-        self.data_stream_closed.emit(start_uid)
+        for descriptor_uid in self._descriptors_for_start_uid[start_uid]:
+            self.data_stream_closed.emit(start_uid + descriptor_uid)
 
     def __getattribute__(self, attr_name):
         if attr_name == "start":
