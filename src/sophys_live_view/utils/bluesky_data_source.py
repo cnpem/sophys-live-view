@@ -17,6 +17,9 @@ class DocumentParser(DocumentRouter):
             if "plan_name" in doc:
                 display_name += " ({})".format(doc.get("plan_name"))
 
+        if "file_name" in doc:
+            display_name += " - {}".format(doc.get("file_name"))
+
         self.on_new_run_started(display_name, doc)
 
     def descriptor(self, doc: EventDescriptor):
