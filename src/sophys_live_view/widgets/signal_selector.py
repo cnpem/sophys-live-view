@@ -14,6 +14,7 @@ from qtpy.QtWidgets import (
     QMessageBox,
     QPushButton,
     QRadioButton,
+    QScrollArea,
     QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
@@ -144,6 +145,8 @@ class SignalSelector(ISignalSelector):
         name_to_index = {"1D": 0, "2D - Scatter": 1, "2D - Grid": 1}
         self._signal_selection_stack.setCurrentIndex(name_to_index[new_tab_name])
 
+        self._signal_selection_stack.currentWidget().refresh_layout()
+
     def _custom_signal_button_clicked(self):
         uid = list(self._current_uids)[0]
         signals = {k: self.get_signal_name(k) for k in self._signals[uid]}
@@ -182,62 +185,165 @@ class SignalSelector(ISignalSelector):
             )
 
 
-class SelectionTable1D(QTableWidget):
-    selected_streams_changed = Signal(str, set)  # X, Y
-
+class TableScrollArea(QScrollArea):
     def __init__(self, parent):
         super().__init__(parent)
 
         self._parent = parent
 
+        self._row_widgets = list()
+
+        self._layout = QGridLayout()
+        self._layout.setRowMinimumHeight(0, 20)
+
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+    def refresh_layout(self):
+        # NOTE: We need to add a new widget so that the Scroll Area updates the layout.
+        _w = QWidget()
+        _w.setLayout(self._layout)
+
+        # Take the old widget without destroying it, so it doesn't recursively destroy the layout (i guess)
+        _old = self.takeWidget()
+
+        self.setWidget(_w)
+        area_size = self.viewport().size()
+        _w.setMinimumSize(area_size)
+
+    def _clear_layout(self):
+        for widgets in self._row_widgets:
+            for widget in widgets:
+                self._layout.removeWidget(widget)
+
+        self._row_widgets.clear()
+
+    def _add_row(self, *args):
+        row_count = len(self._row_widgets) + 1
+
+        alignment = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
+
+        for idx, widget in enumerate(args):
+            self._layout.addWidget(widget, row_count, idx, 1, 1, alignment)
+
+        self._layout.setRowMinimumHeight(row_count, 20)
+
+        self._row_widgets.append(tuple(args))
+
+
+class SelectionTable1D(TableScrollArea):
+    selected_streams_changed = Signal(str, set)  # X, Y
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
         self._selected_x_signal = ""
         self._selected_y_signals = set()
 
-        self.setColumnCount(3)
-        self.setHorizontalHeaderLabels(["Signal", "X", "Y"])
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.horizontalHeader().setSectionResizeMode(
-            2, QHeaderView.ResizeMode.ResizeToContents
-        )
+        self._row_data = dict()
+
+        alignment = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
+
+        name = QLabel("Signal")
+        name.setAlignment(alignment)
+        self._layout.addWidget(name, 0, 0, 1, 1)
+        x_axis = QLabel("X")
+        x_axis.setAlignment(alignment)
+        self._layout.addWidget(x_axis, 0, 1, 1, 1)
+        y_axis = QLabel("Y")
+        y_axis.setAlignment(alignment)
+        self._layout.addWidget(y_axis, 0, 2, 1, 1)
+
+        self._layout.setColumnStretch(0, 2)
+        self._layout.setColumnStretch(1, 1)
+        self._layout.setColumnStretch(2, 1)
+
+        self.refresh_layout()
+
+    def _row_signal_name(self, row: int):
+        return self._row_widgets[row][0].text()
+
+    def _row_signal(self, row: int):
+        return self._row_data[self._row_signal_name(row)]
+
+    def _is_x_axis_activated(self, row: int):
+        return self._row_widgets[row][1].isChecked()
+
+    def _activated_x_axis_rows(self):
+        return [
+            row
+            for row in range(len(self._row_widgets))
+            if self._is_x_axis_activated(row)
+        ]
+
+    def _is_y_axis_activated(self, row: int):
+        return self._row_widgets[row][2].isChecked()
+
+    def _activated_y_axis_rows(self):
+        return [
+            row
+            for row in range(len(self._row_widgets))
+            if self._is_y_axis_activated(row)
+        ]
 
     def configure_signals(self, uids, signals):
-        self.setRowCount(0)
+        self._clear_layout()
+        self._row_data.clear()
 
         sorted_signals_list = sorted(signals)
-        for index, signal in enumerate(sorted_signals_list):
-            self.insertRow(index)
-
+        for signal in sorted_signals_list:
             signal_name = self._parent.get_signal_name(signal)
-            item = QTableWidgetItem(signal_name)
-            item.setTextAlignment(
+            self._row_data[signal_name] = signal
+
+            name = QLabel(signal_name)
+            name.setAlignment(
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
             )
             if "(custom)" in signal_name:
-                _f = item.font()
+                _f = name.font()
                 _f.setItalic(True)
-                item.setFont(_f)
-            item.setData(Qt.ItemDataRole.UserRole, signal)
-            item.setFlags(~Qt.ItemFlag.ItemIsEditable)
-            self.setItem(index, 0, item)
+                name.setFont(_f)
 
             x_axis_radio_button = QRadioButton()
-            x_axis_radio_button.setStyleSheet("margin-left:50%; margin-right:50%;")
             x_axis_radio_button.clicked.connect(self._change_x_axis_signal)
-            self.setCellWidget(index, 1, x_axis_radio_button)
 
             y_axis_checkbox = QCheckBox()
-            y_axis_checkbox.setStyleSheet("margin-left:50%; margin-right:50%;")
             y_axis_checkbox.toggled.connect(self._change_y_axis_signal)
-            self.setCellWidget(index, 2, y_axis_checkbox)
+
+            self._add_row(name, x_axis_radio_button, y_axis_checkbox)
 
         # NOTE: Avoid sending essentially the same signal twice in a row.
         self.blockSignals(True)
         self._change_x_axis_signal()
         self.blockSignals(False)
         self._change_y_axis_signal()
+
+        self.refresh_layout()
+
+    def _get_selected_x_axis_signal(self):
+        for row in self._activated_x_axis_rows():
+            return self._row_signal(row)
+
+        for row in range(len(self._row_widgets)):
+            signal = self._row_signal(row)
+            if signal in self._parent.default_independent_signals:
+                self._row_widgets[row][1].setChecked(True)
+                return signal
+
+    def _get_selected_y_axis_signals(self):
+        selected_signals = set()
+
+        for row in self._activated_y_axis_rows():
+            selected_signals.add(self._row_signal(row))
+
+        if len(selected_signals) == 0:
+            for row in range(len(self._row_widgets)):
+                signal = self._row_signal(row)
+                if signal in self._parent.default_dependent_signals:
+                    self._row_widgets[row][2].setChecked(True)
+                    selected_signals.add(signal)
+
+        return selected_signals
 
     def _change_x_axis_signal(self):
         self._selected_x_signal = self._get_selected_x_axis_signal()
@@ -253,54 +359,12 @@ class SelectionTable1D(QTableWidget):
             self._selected_x_signal, self._selected_y_signals
         )
 
-    def _get_selected_x_axis_signal(self):
-        selected_signal = ""
 
-        for index in range(self.rowCount()):
-            if self.cellWidget(index, 1).isChecked():
-                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                selected_signal = signal
-                continue
-
-        if selected_signal == "":
-            for index in range(self.rowCount()):
-                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                if signal in self._parent.default_independent_signals:
-                    selected_signal = signal
-
-                    self.cellWidget(index, 1).setChecked(True)
-                    break
-
-        return selected_signal
-
-    def _get_selected_y_axis_signals(self):
-        selected_signals = set()
-
-        for index in range(self.rowCount()):
-            if self.cellWidget(index, 2).isChecked():
-                selected_signals.add(self.item(index, 0).data(Qt.ItemDataRole.UserRole))
-
-        if len(selected_signals) == 0:
-            for index in range(self.rowCount()):
-                if (
-                    self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                    in self._parent.default_dependent_signals
-                ):
-                    self.cellWidget(index, 2).setChecked(True)
-                    selected_signals.add(
-                        self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                    )
-
-        return selected_signals
-
-
-class SelectionTable2D(QTableWidget):
+class SelectionTable2D(TableScrollArea):
     selected_streams_changed = Signal(str, str, set)  # X, Y, Z
 
     def __init__(self, parent):
         super().__init__(parent)
-
-        self._parent = parent
 
         self._selected_x_signal = ""
         self._selected_y_signal = ""
@@ -309,117 +373,143 @@ class SelectionTable2D(QTableWidget):
         self._x_buttons_container = QButtonGroup()
         self._y_buttons_container = QButtonGroup()
 
-        self.setColumnCount(4)
-        self.setHorizontalHeaderLabels(["Signal", "X", "Y", "Data"])
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.horizontalHeader().setSectionResizeMode(
-            2, QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.horizontalHeader().setSectionResizeMode(
-            3, QHeaderView.ResizeMode.ResizeToContents
-        )
+        self._row_data = dict()
+
+        alignment = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
+
+        name = QLabel("Signal")
+        name.setAlignment(alignment)
+        self._layout.addWidget(name, 0, 0, 1, 1)
+        x_axis = QLabel("X")
+        x_axis.setAlignment(alignment)
+        self._layout.addWidget(x_axis, 0, 1, 1, 1)
+        y_axis = QLabel("Y")
+        y_axis.setAlignment(alignment)
+        self._layout.addWidget(y_axis, 0, 2, 1, 1)
+        data_axis = QLabel("Data")
+        data_axis.setAlignment(alignment)
+        self._layout.addWidget(data_axis, 0, 3, 1, 1)
+
+        self._layout.setColumnStretch(0, 2)
+        self._layout.setColumnStretch(1, 1)
+        self._layout.setColumnStretch(2, 1)
+        self._layout.setColumnStretch(3, 1)
+
+        self.refresh_layout()
 
     def configure_signals(self, uids, signals):
-        self.setRowCount(0)
+        self._clear_layout()
+        self._row_data.clear()
 
         sorted_signals_list = sorted(signals)
-        for index, signal in enumerate(sorted_signals_list):
-            self.insertRow(index)
-
+        for signal in sorted_signals_list:
             signal_name = self._parent.get_signal_name(signal)
-            item = QTableWidgetItem(signal_name)
-            item.setTextAlignment(
+            self._row_data[signal_name] = signal
+
+            name = QLabel(signal_name)
+            name.setAlignment(
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
             )
             if "(custom)" in signal_name:
-                _f = item.font()
+                _f = name.font()
                 _f.setItalic(True)
-                item.setFont(_f)
-            item.setData(Qt.ItemDataRole.UserRole, signal)
-            item.setFlags(~Qt.ItemFlag.ItemIsEditable)
-            self.setItem(index, 0, item)
+                name.setFont(_f)
 
             x_axis_radio_button = QRadioButton()
-            x_axis_radio_button.setStyleSheet("margin-left:50%; margin-right:50%;")
             x_axis_radio_button.clicked.connect(self._change_x_axis_signal)
             self._x_buttons_container.addButton(x_axis_radio_button)
-            self.setCellWidget(index, 1, x_axis_radio_button)
 
             y_axis_radio_button = QRadioButton()
-            y_axis_radio_button.setStyleSheet("margin-left:50%; margin-right:50%;")
             y_axis_radio_button.clicked.connect(self._change_y_axis_signal)
             self._y_buttons_container.addButton(y_axis_radio_button)
-            self.setCellWidget(index, 2, y_axis_radio_button)
 
             z_axis_checkbox = QCheckBox()
-            z_axis_checkbox.setStyleSheet("margin-left:50%; margin-right:50%;")
             z_axis_checkbox.toggled.connect(self._change_z_axis_signals)
-            self.setCellWidget(index, 3, z_axis_checkbox)
+
+            self._add_row(
+                name, x_axis_radio_button, y_axis_radio_button, z_axis_checkbox
+            )
 
         self._change_x_axis_signal()
         self._change_y_axis_signal()
         self._change_z_axis_signals()
 
+        self.refresh_layout()
+
+    def _row_signal_name(self, row: int):
+        return self._row_widgets[row][0].text()
+
+    def _row_signal(self, row: int):
+        return self._row_data[self._row_signal_name(row)]
+
+    def _is_x_axis_activated(self, row: int):
+        return self._row_widgets[row][1].isChecked()
+
+    def _activated_x_axis_rows(self):
+        return [
+            row
+            for row in range(len(self._row_widgets))
+            if self._is_x_axis_activated(row)
+        ]
+
+    def _is_y_axis_activated(self, row: int):
+        return self._row_widgets[row][2].isChecked()
+
+    def _activated_y_axis_rows(self):
+        return [
+            row
+            for row in range(len(self._row_widgets))
+            if self._is_y_axis_activated(row)
+        ]
+
+    def _is_z_axis_activated(self, row: int):
+        return self._row_widgets[row][3].isChecked()
+
+    def _activated_z_axis_rows(self):
+        return [
+            row
+            for row in range(len(self._row_widgets))
+            if self._is_z_axis_activated(row)
+        ]
+
     def _get_selected_x_axis_signal(self):
-        selected_signal = ""
+        for row in self._activated_x_axis_rows():
+            return self._row_signal(row)
 
-        for index in range(self.rowCount()):
-            if self.cellWidget(index, 1).isChecked():
-                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                selected_signal = signal
-                continue
-
-        if selected_signal == "" and len(self._parent.default_independent_signals) >= 2:
-            for index in range(self.rowCount()):
-                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
+        if len(self._parent.default_independent_signals) >= 2:
+            for row in range(len(self._row_widgets)):
+                signal = self._row_signal(row)
                 if signal == self._parent.default_independent_signals[1]:
-                    selected_signal = signal
+                    self._row_widgets[row][1].setChecked(True)
+                    return signal
 
-                    self.cellWidget(index, 1).setChecked(True)
-                    break
-
-        return selected_signal
+        return ""
 
     def _get_selected_y_axis_signal(self):
-        selected_signal = ""
+        for row in self._activated_y_axis_rows():
+            return self._row_signal(row)
 
-        for index in range(self.rowCount()):
-            if self.cellWidget(index, 2).isChecked():
-                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                selected_signal = signal
-                continue
-
-        if selected_signal == "" and len(self._parent.default_independent_signals) >= 2:
-            for index in range(self.rowCount()):
-                signal = self.item(index, 0).data(Qt.ItemDataRole.UserRole)
+        if len(self._parent.default_independent_signals) >= 2:
+            for row in range(len(self._row_widgets)):
+                signal = self._row_signal(row)
                 if signal == self._parent.default_independent_signals[0]:
-                    selected_signal = signal
+                    self._row_widgets[row][2].setChecked(True)
+                    return signal
 
-                    self.cellWidget(index, 2).setChecked(True)
-                    break
-
-        return selected_signal
+        return ""
 
     def _get_selected_z_axis_signals(self):
         selected_signals = set()
 
-        for index in range(self.rowCount()):
-            if self.cellWidget(index, 3).isChecked():
-                selected_signals.add(self.item(index, 0).data(Qt.ItemDataRole.UserRole))
+        for row in self._activated_z_axis_rows():
+            selected_signals.add(self._row_signal(row))
 
         if len(selected_signals) == 0:
-            for index in range(self.rowCount()):
-                if (
-                    self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                    in self._parent.default_dependent_signals
-                ):
-                    self.cellWidget(index, 3).setChecked(True)
-                    selected_signals.add(
-                        self.item(index, 0).data(Qt.ItemDataRole.UserRole)
-                    )
+            for row in range(len(self._row_widgets)):
+                signal = self._row_signal(row)
+                if signal in self._parent.default_dependent_signals:
+                    self._row_widgets[row][3].setChecked(True)
+                    selected_signals.add(signal)
 
         return selected_signals
 
