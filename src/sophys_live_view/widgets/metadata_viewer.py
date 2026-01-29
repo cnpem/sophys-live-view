@@ -18,6 +18,8 @@ class MetadataViewer(IMetadataViewer):
 
         self._stream_metadata = dict()
 
+        self._tabs = list()
+
         layout = QVBoxLayout()
         self._tab = QTabWidget()
         layout.addWidget(self._tab)
@@ -27,7 +29,12 @@ class MetadataViewer(IMetadataViewer):
         selected_streams_changed.connect(self.change_current_streams)
 
     def change_current_streams(self, new_uids_and_names: list[tuple[str, str]]):
+        # NOTE: This doesn't delete the child tab page widgets.
         self._tab.clear()
+        # This does.
+        for tab in self._tabs:
+            tab.deleteLater()
+        self._tabs.clear()
 
         def add_metadata_field(key, value, metadata_page):
             if isinstance(value, dict):
@@ -84,6 +91,7 @@ class MetadataViewer(IMetadataViewer):
                 )
 
             self._tab.addTab(metadata_page, name)
+            self._tabs.append(metadata_page)
 
     def _add_new_stream(
         self,
