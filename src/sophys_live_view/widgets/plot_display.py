@@ -247,6 +247,8 @@ class PlotDisplay(IPlotDisplay):
         if not _is_numeric(x_axis_data) or not _is_numeric(cached_data):
             return
 
+        if len(x_axis_data.shape) > 1:
+            x_axis_data = np.trim_zeros(np.nan_to_num(x_axis_data.flatten()))
         if len(cached_data.shape) > 1:
             cached_data = np.trim_zeros(np.nan_to_num(cached_data.flatten()))
 
@@ -273,6 +275,10 @@ class PlotDisplay(IPlotDisplay):
         y_axis_data = self._data_aggregator.get_data(uid, y_axis_signal)
         cached_data = self._data_aggregator.get_data(uid, detector_name)
 
+        if len(x_axis_data.shape) > 1:
+            x_axis_data = np.trim_zeros(np.nan_to_num(x_axis_data.flatten()))
+        if len(y_axis_data.shape) > 1:
+            y_axis_data = np.trim_zeros(np.nan_to_num(y_axis_data.flatten()))
         if len(cached_data.shape) > 1:
             cached_data = np.trim_zeros(np.nan_to_num(cached_data.flatten()))
 
