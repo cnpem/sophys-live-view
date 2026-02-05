@@ -26,6 +26,12 @@ from qtpy.QtWidgets import (
 from .interfaces import CUSTOM_SIGNALS_ENVIRONMENT, ISignalSelector
 
 
+def set_checked_no_emit(widget: QCheckBox | QRadioButton, state: bool):
+    widget.blockSignals(True)
+    widget.setChecked(state)
+    widget.blockSignals(False)
+
+
 class SignalSelector(ISignalSelector):
     def __init__(self, data_source_manager, selected_streams_changed: Signal):
         super().__init__()
@@ -80,27 +86,22 @@ class SignalSelector(ISignalSelector):
         self._current_uids = new_uids
         self._custom_signal_button.setVisible(len(new_uids) == 1)
 
-        if len(new_uids) == 1:
-            self.default_independent_signals = self._default_independent_signals.get(
-                list(new_uids)[0], set()
-            )
-            self.default_dependent_signals = self._default_dependent_signals.get(
-                list(new_uids)[0], set()
-            )
-        else:
-            self.default_independent_signals = list()
-            self.default_dependent_signals = set()
-
-            for uid in new_uids:
-                self.default_independent_signals.extend(
-                    self._default_independent_signals.get(uid, [])
-                )
-                self.default_dependent_signals |= self._default_dependent_signals.get(
-                    uid, set()
-                )
+        self._configure_default_signals(new_uids, new_signals)
 
         self._1d_signal_selection_table.configure_signals(new_uids, new_signals)
         self._2d_signal_selection_table.configure_signals(new_uids, new_signals)
+
+    def _configure_default_signals(self, new_uids, new_signals):
+        self.default_independent_signals = list()
+        self.default_dependent_signals = set()
+
+        for uid in new_uids:
+            self.default_independent_signals.extend(
+                self._default_independent_signals.get(uid, [])
+            )
+            self.default_dependent_signals |= self._default_dependent_signals.get(
+                uid, set()
+            )
 
     def reload(self):
         self.change_current_streams([(i, None) for i in self._current_uids])
@@ -240,6 +241,9 @@ class SelectionTable1D(TableScrollArea):
         self._selected_x_signal = ""
         self._selected_y_signals = set()
 
+        self._old_independent_signals = list()
+        self._old_dependent_signals = set()
+
         self._row_data = dict()
 
         alignment = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignCenter
@@ -308,27 +312,49 @@ class SelectionTable1D(TableScrollArea):
             x_axis_radio_button.clicked.connect(self._change_x_axis_signal)
 
             y_axis_checkbox = QCheckBox()
-            y_axis_checkbox.toggled.connect(self._change_y_axis_signal)
+            y_axis_checkbox.toggled.connect(self._change_y_axis_signals)
 
             self._add_row(name, x_axis_radio_button, y_axis_checkbox)
 
+        self._select_default_x_axis_signal(signals)
+        self._select_default_y_axis_signals(signals)
+
         # NOTE: Avoid sending essentially the same signal twice in a row.
-        self.blockSignals(True)
-        self._change_x_axis_signal()
-        self.blockSignals(False)
-        self._change_y_axis_signal()
+        self._change_x_axis_signal(emit=False)
+        self._change_y_axis_signals()
 
         self.refresh_layout()
+
+    def _select_default_x_axis_signal(self, signals):
+        """Select the default X axis signal if it's available, with more priority to old selected signals."""
+        default_independent_signals = self._parent.default_independent_signals
+
+        has_independent = any(s in self._old_independent_signals for s in signals)
+        if has_independent:
+            default_independent_signals = self._old_independent_signals
+
+        for row in range(len(self._row_widgets)):
+            signal = self._row_signal(row)
+            if signal in default_independent_signals:
+                set_checked_no_emit(self._row_widgets[row][1], True)
+                return
 
     def _get_selected_x_axis_signal(self):
         for row in self._activated_x_axis_rows():
             return self._row_signal(row)
 
+    def _select_default_y_axis_signals(self, signals):
+        """Select the default Y axis signals if they're available, with more priority to old selected signals."""
+        default_dependent_signals = self._parent.default_dependent_signals
+
+        has_dependent = any(s in self._old_dependent_signals for s in signals)
+        if has_dependent:
+            default_dependent_signals = self._old_dependent_signals
+
         for row in range(len(self._row_widgets)):
             signal = self._row_signal(row)
-            if signal in self._parent.default_independent_signals:
-                self._row_widgets[row][1].setChecked(True)
-                return signal
+            if signal in default_dependent_signals:
+                set_checked_no_emit(self._row_widgets[row][2], True)
 
     def _get_selected_y_axis_signals(self):
         selected_signals = set()
@@ -336,28 +362,25 @@ class SelectionTable1D(TableScrollArea):
         for row in self._activated_y_axis_rows():
             selected_signals.add(self._row_signal(row))
 
-        if len(selected_signals) == 0:
-            for row in range(len(self._row_widgets)):
-                signal = self._row_signal(row)
-                if signal in self._parent.default_dependent_signals:
-                    self._row_widgets[row][2].setChecked(True)
-                    selected_signals.add(signal)
-
         return selected_signals
 
-    def _change_x_axis_signal(self):
+    def _change_x_axis_signal(self, emit=True):
         self._selected_x_signal = self._get_selected_x_axis_signal()
+        self._old_independent_signals = [self._selected_x_signal]
 
-        self.selected_streams_changed.emit(
-            self._selected_x_signal, self._selected_y_signals
-        )
+        if emit:
+            self.selected_streams_changed.emit(
+                self._selected_x_signal, self._selected_y_signals
+            )
 
-    def _change_y_axis_signal(self):
+    def _change_y_axis_signals(self, emit=True):
         self._selected_y_signals = self._get_selected_y_axis_signals()
+        self._old_dependent_signals = set(self._selected_y_signals)
 
-        self.selected_streams_changed.emit(
-            self._selected_x_signal, self._selected_y_signals
-        )
+        if emit:
+            self.selected_streams_changed.emit(
+                self._selected_x_signal, self._selected_y_signals
+            )
 
 
 class SelectionTable2D(TableScrollArea):
@@ -369,6 +392,9 @@ class SelectionTable2D(TableScrollArea):
         self._selected_x_signal = ""
         self._selected_y_signal = ""
         self._selected_z_signals = set()
+
+        self._old_independent_signals = list()
+        self._old_dependent_signals = set()
 
         self._x_buttons_container = QButtonGroup()
         self._y_buttons_container = QButtonGroup()
@@ -430,8 +456,12 @@ class SelectionTable2D(TableScrollArea):
                 name, x_axis_radio_button, y_axis_radio_button, z_axis_checkbox
             )
 
-        self._change_x_axis_signal()
-        self._change_y_axis_signal()
+        self._select_default_x_axis_signal(signals)
+        self._select_default_y_axis_signal(signals)
+        self._select_default_z_axis_signals(signals)
+
+        self._change_x_axis_signal(emit=False)
+        self._change_y_axis_signal(emit=False)
         self._change_z_axis_signals()
 
         self.refresh_layout()
@@ -472,31 +502,60 @@ class SelectionTable2D(TableScrollArea):
             if self._is_z_axis_activated(row)
         ]
 
+    def _select_default_x_axis_signal(self, signals):
+        """Select the default X axis signal if it's available, with more priority to old selected signals."""
+        default_independent_signals = self._parent.default_independent_signals
+
+        has_independent = any(s in self._old_independent_signals for s in signals)
+        if has_independent:
+            default_independent_signals = self._old_independent_signals
+
+        if len(default_independent_signals) < 2:
+            return
+
+        for row in range(len(self._row_widgets)):
+            signal = self._row_signal(row)
+            if signal == default_independent_signals[1]:
+                set_checked_no_emit(self._row_widgets[row][1], True)
+                return
+
     def _get_selected_x_axis_signal(self):
         for row in self._activated_x_axis_rows():
             return self._row_signal(row)
 
-        if len(self._parent.default_independent_signals) >= 2:
-            for row in range(len(self._row_widgets)):
-                signal = self._row_signal(row)
-                if signal == self._parent.default_independent_signals[1]:
-                    self._row_widgets[row][1].setChecked(True)
-                    return signal
+    def _select_default_y_axis_signal(self, signals):
+        """Select the default Y axis signal if it's available, with more priority to old selected signals."""
+        default_independent_signals = self._parent.default_independent_signals
 
-        return ""
+        has_independent = any(s in self._old_independent_signals for s in signals)
+        if has_independent:
+            default_independent_signals = self._old_independent_signals
+
+        if len(default_independent_signals) < 2:
+            return
+
+        for row in range(len(self._row_widgets)):
+            signal = self._row_signal(row)
+            if signal == default_independent_signals[0]:
+                set_checked_no_emit(self._row_widgets[row][2], True)
+                return
 
     def _get_selected_y_axis_signal(self):
         for row in self._activated_y_axis_rows():
             return self._row_signal(row)
 
-        if len(self._parent.default_independent_signals) >= 2:
-            for row in range(len(self._row_widgets)):
-                signal = self._row_signal(row)
-                if signal == self._parent.default_independent_signals[0]:
-                    self._row_widgets[row][2].setChecked(True)
-                    return signal
+    def _select_default_z_axis_signals(self, signals):
+        """Select the default Z axis signals if they're available, with more priority to old selected signals."""
+        default_dependent_signals = self._parent.default_dependent_signals
 
-        return ""
+        has_dependent = any(s in self._old_dependent_signals for s in signals)
+        if has_dependent:
+            default_dependent_signals = self._old_dependent_signals
+
+        for row in range(len(self._row_widgets)):
+            signal = self._row_signal(row)
+            if signal in default_dependent_signals:
+                set_checked_no_emit(self._row_widgets[row][3], True)
 
     def _get_selected_z_axis_signals(self):
         selected_signals = set()
@@ -504,35 +563,46 @@ class SelectionTable2D(TableScrollArea):
         for row in self._activated_z_axis_rows():
             selected_signals.add(self._row_signal(row))
 
-        if len(selected_signals) == 0:
-            for row in range(len(self._row_widgets)):
-                signal = self._row_signal(row)
-                if signal in self._parent.default_dependent_signals:
-                    self._row_widgets[row][3].setChecked(True)
-                    selected_signals.add(signal)
-
         return selected_signals
 
-    def _change_x_axis_signal(self):
+    def _change_x_axis_signal(self, emit=True):
         self._selected_x_signal = self._get_selected_x_axis_signal()
+        self._parent._old_independent_signals = [
+            self._selected_x_signal,
+            self._selected_y_signal,
+        ]
 
-        self.selected_streams_changed.emit(
-            self._selected_x_signal, self._selected_y_signal, self._selected_z_signals
-        )
+        if emit:
+            self.selected_streams_changed.emit(
+                self._selected_x_signal,
+                self._selected_y_signal,
+                self._selected_z_signals,
+            )
 
-    def _change_y_axis_signal(self):
+    def _change_y_axis_signal(self, emit=True):
         self._selected_y_signal = self._get_selected_y_axis_signal()
+        self._parent._old_independent_signals = [
+            self._selected_x_signal,
+            self._selected_y_signal,
+        ]
 
-        self.selected_streams_changed.emit(
-            self._selected_x_signal, self._selected_y_signal, self._selected_z_signals
-        )
+        if emit:
+            self.selected_streams_changed.emit(
+                self._selected_x_signal,
+                self._selected_y_signal,
+                self._selected_z_signals,
+            )
 
-    def _change_z_axis_signals(self):
+    def _change_z_axis_signals(self, emit=True):
         self._selected_z_signals = self._get_selected_z_axis_signals()
+        self._parent._old_dependent_signals = set(self._selected_z_signals)
 
-        self.selected_streams_changed.emit(
-            self._selected_x_signal, self._selected_y_signal, self._selected_z_signals
-        )
+        if emit:
+            self.selected_streams_changed.emit(
+                self._selected_x_signal,
+                self._selected_y_signal,
+                self._selected_z_signals,
+            )
 
 
 class CustomSignalCreator(QStackedWidget):
