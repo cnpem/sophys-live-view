@@ -391,13 +391,14 @@ class SelectionTable2D(TableScrollArea):
 
         self._selected_x_signal = ""
         self._selected_y_signal = ""
-        self._selected_z_signals = set()
+        self._selected_z_signal = ""
 
         self._old_independent_signals = list()
         self._old_dependent_signals = set()
 
         self._x_buttons_container = QButtonGroup()
         self._y_buttons_container = QButtonGroup()
+        self._z_buttons_container = QButtonGroup()
 
         self._row_data = dict()
 
@@ -449,20 +450,21 @@ class SelectionTable2D(TableScrollArea):
             y_axis_radio_button.clicked.connect(self._change_y_axis_signal)
             self._y_buttons_container.addButton(y_axis_radio_button)
 
-            z_axis_checkbox = QCheckBox()
-            z_axis_checkbox.toggled.connect(self._change_z_axis_signals)
+            z_axis_radio_button = QRadioButton()
+            z_axis_radio_button.clicked.connect(self._change_z_axis_signal)
+            self._z_buttons_container.addButton(z_axis_radio_button)
 
             self._add_row(
-                name, x_axis_radio_button, y_axis_radio_button, z_axis_checkbox
+                name, x_axis_radio_button, y_axis_radio_button, z_axis_radio_button
             )
 
         self._select_default_x_axis_signal(signals)
         self._select_default_y_axis_signal(signals)
-        self._select_default_z_axis_signals(signals)
+        self._select_default_z_axis_signal(signals)
 
         self._change_x_axis_signal(emit=False)
         self._change_y_axis_signal(emit=False)
-        self._change_z_axis_signals()
+        self._change_z_axis_signal()
 
         self.refresh_layout()
 
@@ -544,8 +546,8 @@ class SelectionTable2D(TableScrollArea):
         for row in self._activated_y_axis_rows():
             return self._row_signal(row)
 
-    def _select_default_z_axis_signals(self, signals):
-        """Select the default Z axis signals if they're available, with more priority to old selected signals."""
+    def _select_default_z_axis_signal(self, signals):
+        """Select the default Z axis signal if it's available, with more priority to old selected signals."""
         default_dependent_signals = self._parent.default_dependent_signals
 
         has_dependent = any(s in self._old_dependent_signals for s in signals)
@@ -556,14 +558,11 @@ class SelectionTable2D(TableScrollArea):
             signal = self._row_signal(row)
             if signal in default_dependent_signals:
                 set_checked_no_emit(self._row_widgets[row][3], True)
+                return
 
-    def _get_selected_z_axis_signals(self):
-        selected_signals = set()
-
+    def _get_selected_z_axis_signal(self):
         for row in self._activated_z_axis_rows():
-            selected_signals.add(self._row_signal(row))
-
-        return selected_signals
+            return self._row_signal(row)
 
     def _change_x_axis_signal(self, emit=True):
         self._selected_x_signal = self._get_selected_x_axis_signal()
@@ -576,7 +575,7 @@ class SelectionTable2D(TableScrollArea):
             self.selected_streams_changed.emit(
                 self._selected_x_signal,
                 self._selected_y_signal,
-                self._selected_z_signals,
+                self._selected_z_signal,
             )
 
     def _change_y_axis_signal(self, emit=True):
@@ -590,18 +589,18 @@ class SelectionTable2D(TableScrollArea):
             self.selected_streams_changed.emit(
                 self._selected_x_signal,
                 self._selected_y_signal,
-                self._selected_z_signals,
+                self._selected_z_signal,
             )
 
-    def _change_z_axis_signals(self, emit=True):
-        self._selected_z_signals = self._get_selected_z_axis_signals()
-        self._parent._old_dependent_signals = set(self._selected_z_signals)
+    def _change_z_axis_signal(self, emit=True):
+        self._selected_z_signal = self._get_selected_z_axis_signal()
+        self._parent._old_dependent_signals = set([self._selected_z_signal])
 
         if emit:
             self.selected_streams_changed.emit(
                 self._selected_x_signal,
                 self._selected_y_signal,
-                self._selected_z_signals,
+                self._selected_z_signal,
             )
 
 
