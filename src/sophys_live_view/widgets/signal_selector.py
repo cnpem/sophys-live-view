@@ -364,7 +364,7 @@ class SelectionTable1D(TableScrollArea):
 
         return selected_signals
 
-    def _change_x_axis_signal(self, emit=True):
+    def _change_x_axis_signal(self, state=True, *, emit=True):
         self._selected_x_signal = self._get_selected_x_axis_signal()
         self._old_independent_signals = [self._selected_x_signal]
 
@@ -373,7 +373,7 @@ class SelectionTable1D(TableScrollArea):
                 self._selected_x_signal, self._selected_y_signals
             )
 
-    def _change_y_axis_signals(self, emit=True):
+    def _change_y_axis_signals(self, state=True, *, emit=True):
         self._selected_y_signals = self._get_selected_y_axis_signals()
         self._old_dependent_signals = set(self._selected_y_signals)
 
@@ -564,7 +564,7 @@ class SelectionTable2D(TableScrollArea):
         for row in self._activated_z_axis_rows():
             return self._row_signal(row)
 
-    def _change_x_axis_signal(self, emit=True):
+    def _change_x_axis_signal(self, state=True, *, emit=True):
         self._selected_x_signal = self._get_selected_x_axis_signal()
         self._parent._old_independent_signals = [
             self._selected_x_signal,
@@ -578,7 +578,7 @@ class SelectionTable2D(TableScrollArea):
                 self._selected_z_signal,
             )
 
-    def _change_y_axis_signal(self, emit=True):
+    def _change_y_axis_signal(self, state=True, *, emit=True):
         self._selected_y_signal = self._get_selected_y_axis_signal()
         self._parent._old_independent_signals = [
             self._selected_x_signal,
@@ -592,7 +592,7 @@ class SelectionTable2D(TableScrollArea):
                 self._selected_z_signal,
             )
 
-    def _change_z_axis_signal(self, emit=True):
+    def _change_z_axis_signal(self, state=True, *, emit=True):
         self._selected_z_signal = self._get_selected_z_axis_signal()
         self._parent._old_dependent_signals = set([self._selected_z_signal])
 
