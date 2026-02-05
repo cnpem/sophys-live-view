@@ -236,6 +236,17 @@ class PlotDisplay(IPlotDisplay):
         if isinstance(cached_data, (int, float)):
             cached_data = np.full_like(x_axis_data, cached_data)
 
+        # Check if the array is a non-empty numeric array
+        def _is_numeric(arr):
+            try:
+                a = np.asarray(arr, dtype=float)
+                return a.size > 0
+            except (TypeError, ValueError):
+                return False
+
+        if not _is_numeric(x_axis_data) or not _is_numeric(cached_data):
+            return
+
         if len(cached_data.shape) > 1:
             cached_data = np.trim_zeros(np.nan_to_num(cached_data.flatten()))
 
