@@ -34,8 +34,12 @@ class DataAggregator(QObject):
         new_stream_signal.connect(self._on_new_stream)
         new_data_signal.connect(self._receive_new_data)
 
-    def get_data(self, uid: str, signal_name: str):
-        return self._data_cache[uid].get(signal_name, None)
+    def get_data(self, uid: str, signal_name: str, *, force_1d: bool = False):
+        data = self._data_cache[uid].get(signal_name, None)
+        if force_1d and data is not None:
+            data = data.flatten()
+            data = data[~np.isnan(data)]
+        return data
 
     def get_metadata(self, uid: str):
         return self._metadata_cache[uid]
@@ -227,10 +231,10 @@ class PlotDisplay(IPlotDisplay):
         self, uid: str, stream_name: str, detector_name: str, tab_index: int
     ):
         x_axis_signal = self._1d_x_axis_names[uid]
-        x_axis_data = self._data_aggregator.get_data(uid, x_axis_signal)
+        x_axis_data = self._data_aggregator.get_data(uid, x_axis_signal, force_1d=True)
         if x_axis_data is None:
             return
-        cached_data = self._data_aggregator.get_data(uid, detector_name)
+        cached_data = self._data_aggregator.get_data(uid, detector_name, force_1d=True)
 
         # NOTE: Shorthand format for a static baseline
         if isinstance(cached_data, (int, float)):
@@ -246,9 +250,6 @@ class PlotDisplay(IPlotDisplay):
 
         if not _is_numeric(x_axis_data) or not _is_numeric(cached_data):
             return
-
-        if len(cached_data.shape) > 1:
-            cached_data = np.trim_zeros(np.nan_to_num(cached_data.flatten()))
 
         plot_widget = self._plots.widget(tab_index)
         plot_widget.getXAxis().setLabel(
@@ -269,12 +270,9 @@ class PlotDisplay(IPlotDisplay):
         if x_axis_signal == "" or y_axis_signal == "":
             return
 
-        x_axis_data = self._data_aggregator.get_data(uid, x_axis_signal)
-        y_axis_data = self._data_aggregator.get_data(uid, y_axis_signal)
-        cached_data = self._data_aggregator.get_data(uid, detector_name)
-
-        if len(cached_data.shape) > 1:
-            cached_data = np.trim_zeros(np.nan_to_num(cached_data.flatten()))
+        x_axis_data = self._data_aggregator.get_data(uid, x_axis_signal, force_1d=True)
+        y_axis_data = self._data_aggregator.get_data(uid, y_axis_signal, force_1d=True)
+        cached_data = self._data_aggregator.get_data(uid, detector_name, force_1d=True)
 
         plot_widget = self._plots.widget(tab_index)
         plot_widget.getXAxis().setLabel(
