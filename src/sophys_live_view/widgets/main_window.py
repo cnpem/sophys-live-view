@@ -1,9 +1,10 @@
 from importlib.metadata import version
 from pathlib import Path
+from time import sleep
 
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QApplication, QMainWindow, QSplitter
+from qtpy.QtGui import QCloseEvent, QIcon
+from qtpy.QtWidgets import QMainWindow, QSplitter
 
 from ..utils.data_source_manager import DataSourceManager
 from .metadata_viewer import MetadataViewer
@@ -78,4 +79,9 @@ class SophysLiveView(QMainWindow):
 
         self.data_source_manager.start()
 
-        QApplication.instance().lastWindowClosed.connect(self.data_source_manager.stop)
+    def closeEvent(self, event: QCloseEvent):  # noqa: N802
+        self.data_source_manager.stop()
+        while self.data_source_manager.isRunning():
+            sleep(0.05)
+
+        event.accept()
