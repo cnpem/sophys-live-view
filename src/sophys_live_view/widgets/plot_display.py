@@ -251,6 +251,9 @@ class PlotDisplay(IPlotDisplay):
         if not _is_numeric(x_axis_data) or not _is_numeric(cached_data):
             return
 
+        if len(x_axis_data) != len(cached_data):
+            return
+
         plot_widget = self._plots.widget(tab_index)
         plot_widget.getXAxis().setLabel(
             self._data_aggregator.get_signal_name(uid, x_axis_signal)
