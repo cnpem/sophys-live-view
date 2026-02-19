@@ -61,6 +61,7 @@ dev = [
     "faker",
     "ruff",
     "py-spy",
+    "memray",
 ]
 all = [
     "sophys_live_view[dev]"

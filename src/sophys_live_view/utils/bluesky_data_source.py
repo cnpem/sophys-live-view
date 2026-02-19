@@ -17,6 +17,9 @@ class DocumentParser(DocumentRouter):
             if "plan_name" in doc:
                 display_name += " ({})".format(doc.get("plan_name"))
 
+        if "file_name" in doc:
+            display_name += " - {}".format(doc.get("file_name"))
+
         self.on_new_run_started(display_name, doc)
 
     def descriptor(self, doc: EventDescriptor):
@@ -27,7 +30,7 @@ class DocumentParser(DocumentRouter):
         fields = set()
         fields_name_map = dict()
         for field, field_info in doc["data_keys"].items():
-            if "units" in field_info:
+            if "units" in field_info and field_info["units"] != "":
                 fields_name_map[field] = "{} ({})".format(field, field_info["units"])
 
             fields.add(field)
