@@ -32,8 +32,8 @@ where = ["src"]
 "*" = ["ui/*.ui", "_assets/*"]
 
 [tool.setuptools_scm]
-version_scheme = "post-release"
-local_scheme = "dirty-tag"
+version_scheme = "no-guess-dev"
+local_scheme = "node-and-date"
 version_file = "src/sophys_live_view/__version__.py"
 
 [tool.ruff]
