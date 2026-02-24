@@ -575,7 +575,7 @@ class SelectionTable2D(TableScrollArea):
             self.selected_streams_changed.emit(
                 self._selected_x_signal,
                 self._selected_y_signal,
-                self._selected_z_signal,
+                set([self._selected_z_signal]),
             )
 
     def _change_y_axis_signal(self, state=True, *, emit=True):
@@ -589,7 +589,7 @@ class SelectionTable2D(TableScrollArea):
             self.selected_streams_changed.emit(
                 self._selected_x_signal,
                 self._selected_y_signal,
-                self._selected_z_signal,
+                set([self._selected_z_signal]),
             )
 
     def _change_z_axis_signal(self, state=True, *, emit=True):
@@ -600,7 +600,7 @@ class SelectionTable2D(TableScrollArea):
             self.selected_streams_changed.emit(
                 self._selected_x_signal,
                 self._selected_y_signal,
-                self._selected_z_signal,
+                set([self._selected_z_signal]),
             )
 
 
