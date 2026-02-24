@@ -84,7 +84,10 @@ class DataAggregator(QObject):
         for detector_name, detector_values in new_data.items():
             if detector_name in metadata and "position" in metadata[detector_name]:
                 position = metadata[detector_name]["position"]
-                self._data_cache[subuid][detector_name][position] = detector_values
+                assert len(detector_values) == 1, (
+                    "Received multiple values for a single data position."
+                )
+                self._data_cache[subuid][detector_name][position] = detector_values[0]
             else:
                 self._data_cache[subuid][detector_name] = np.append(
                     self._data_cache[subuid][detector_name], detector_values
