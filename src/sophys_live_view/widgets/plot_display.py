@@ -303,20 +303,18 @@ class PlotDisplay(IPlotDisplay):
         if x_axis_signal == "" or y_axis_signal == "":
             return
 
-        cached_data = self._data_aggregator.get_data(uid, detector_name)
+        cached_data = np.atleast_2d(self._data_aggregator.get_data(uid, detector_name))
         _metadata = self._data_aggregator.get_metadata(uid)
 
         shape = tuple(_metadata.get("shape", (0, 0)))
         extents = _metadata.get("extents", ((0, 0), (0, 0)))
-        scale = (
-            (extents[1][1] - extents[1][0]) / (shape[1] - 1),
-            (extents[0][1] - extents[0][0]) / (shape[0] - 1),
-        )
-        origin = (extents[1][0] - scale[0] / 2, extents[0][0] - scale[1] / 2)
+        extents_y, extents_x = extents
 
-        # Probably trying to plot 1D data in a 2D plot
-        if cached_data.shape != shape:
-            return
+        scale = (
+            (extents_x[1] - extents_x[0]) / (shape[1] - 1) if shape[1] != 1 else 1,
+            (extents_y[1] - extents_y[0]) / (shape[0] - 1) if shape[0] != 1 else 1,
+        )
+        origin = (extents_x[0] - scale[1] / 2, extents_y[0] - scale[0] / 2)
 
         plot_widget = self._plots.widget(tab_index)
         plot_widget.getXAxis().setLabel(
