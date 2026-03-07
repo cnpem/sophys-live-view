@@ -15,6 +15,7 @@ dependencies = [
     "qtawesome",
     "kafka-python",
     "msgpack",
+    "msgpack-numpy",
     "python-dateutil",
     "matplotlib",
     "crc32c",

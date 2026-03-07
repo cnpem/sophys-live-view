@@ -3,7 +3,7 @@ import logging
 import typing
 
 from kafka import KafkaConsumer, TopicPartition
-import msgpack
+import msgpack_numpy as msgpack
 
 from .bluesky_data_source import BlueskyDataSource
 
