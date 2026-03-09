@@ -1,0 +1,7 @@
+name: sophys_live_view_test_env
+channels:
+  - conda-forge
+dependencies:
+  - python>3.13,<3.14
+  - libpython-static
+  - pyside6

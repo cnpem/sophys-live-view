@@ -1,0 +1,6 @@
+name: sophys_live_view_test_env
+channels:
+  - conda-forge
+dependencies:
+  - python>3.11,<3.12
+  - pyqt<6
