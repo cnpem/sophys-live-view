@@ -13,6 +13,11 @@ class DataSourceManager(QThread):
 
     This entity is responsible for managing the lifecycle of DataSources once
     they're added to it, and proxying signal emittions with some data injection taking place.
+
+    Parameters
+    ----------
+    polling_time: float, optional
+        The polling time, in seconds, for new data sources. Defaults to 200ms.
     """
 
     # Here, we have a UID referent to the DataSource from which the data originates from,
@@ -31,8 +36,10 @@ class DataSourceManager(QThread):
         str, str, float
     )  # uid, status message, completion percentage
 
-    def __init__(self):
+    def __init__(self, polling_time: float = 0.2):
         super().__init__()
+
+        self._polling_time = polling_time
 
         self._data_sources = dict()
         self._data_sources_lock = Lock()
@@ -78,10 +85,10 @@ class DataSourceManager(QThread):
         # Here we should pull from data sources which do not provide us with asynchronous data.
 
         while not self.isInterruptionRequested():
-            time.sleep(0.2)
-
             with self._data_sources_lock:
                 if len(self._unvisited_data_sources) == 0:
+                    time.sleep(self._polling_time)
+
                     continue
 
                 data_source_uid = self._unvisited_data_sources.pop()
@@ -92,9 +99,10 @@ class DataSourceManager(QThread):
                 self._visited_data_sources.add(data_source_uid)
 
     def stop(self):
+        self.requestInterruption()
+
         with self._data_sources_lock:
             for data_source in self._data_sources.values():
                 data_source.close_thread()
+            for data_source in self._data_sources.values():
                 data_source.wait()
-
-            self.requestInterruption()
