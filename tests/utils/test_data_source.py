@@ -6,7 +6,7 @@ from sophys_live_view.utils.json_data_source import JSONDataSource
 
 @pytest.fixture
 def empty_manager():
-    manager = DataSourceManager(polling_time=0.05)
+    manager = DataSourceManager()
 
     yield manager
 
