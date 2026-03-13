@@ -26,7 +26,7 @@ class DataAggregator(QObject):
         """
         super().__init__()
 
-        self._data_cache = defaultdict(lambda: defaultdict(lambda: np.array([[], []])))
+        self._data_cache = defaultdict(lambda: defaultdict(lambda: list()))
         self._metadata_cache = defaultdict(lambda: dict())
         self._signals_name_map = defaultdict(lambda: dict())
         self._custom_signals_map = defaultdict(lambda: dict())
@@ -35,8 +35,8 @@ class DataAggregator(QObject):
         new_data_signal.connect(self._receive_new_data)
 
     def get_data(self, uid: str, signal_name: str, *, force_1d: bool = False):
-        data = self._data_cache[uid].get(signal_name, None)
-        if force_1d and data is not None:
+        data = np.array(self._data_cache[uid].get(signal_name, []))
+        if force_1d and len(data) != 0:
             data = data.flatten()
             data = data[~np.isnan(data)]
         return data
@@ -89,8 +89,8 @@ class DataAggregator(QObject):
                 )
                 self._data_cache[subuid][detector_name][position] = detector_values[0]
             else:
-                self._data_cache[subuid][detector_name] = np.append(
-                    self._data_cache[subuid][detector_name], detector_values
+                self._data_cache[subuid][detector_name].extend(
+                    x for x in detector_values
                 )
 
         for name, expression in self._custom_signals_map[subuid].items():
