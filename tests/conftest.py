@@ -67,7 +67,7 @@ class DummyDataSource(DataSource):
 
 @pytest.fixture
 def data_source_manager():
-    manager = DataSourceManager(polling_time=0.05)
+    manager = DataSourceManager()
     manager.add_data_source(DummyDataSource())
     yield manager
     manager.stop()
