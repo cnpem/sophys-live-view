@@ -34,6 +34,9 @@ class DataAggregator(QObject):
         new_stream_signal.connect(self._on_new_stream)
         new_data_signal.connect(self._receive_new_data)
 
+        # NOTE: Used for testing.
+        self.total_processed_data_events = 0
+
     def get_data(self, uid: str, signal_name: str, *, force_1d: bool = False):
         data = self._data_cache[uid].get(signal_name, None)
         if force_1d and data is not None:
@@ -97,6 +100,8 @@ class DataAggregator(QObject):
             self.add_custom_signal(subuid, name, expression)
 
         self.new_data_received.emit(subuid)
+
+        self.total_processed_data_events += 1
 
 
 class PlotDisplay(IPlotDisplay):
