@@ -28,8 +28,8 @@ class DataSourceManager(QThread):
         str, str, str, set, dict, set, list, dict
     )  # uid, subuid, display_name, fields, fields name map, detectors, motors, metadata
     new_data_received = Signal(
-        str, str, dict, dict
-    )  # uid, subuid, {signal : data}, {signal : metadata}
+        str, str, int, dict, dict
+    )  # uid, subuid, number of events, {signal : data}, {signal : metadata}
     data_stream_closed = Signal(str, str)  # uid, subuid
     go_to_last_automatically = Signal(str, bool)  # uid, state
     loading_status = Signal(
