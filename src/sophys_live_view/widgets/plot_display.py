@@ -83,7 +83,14 @@ class DataAggregator(QObject):
             for detector in metadata.get("detectors", []):
                 self._data_cache[subuid][detector] = np.ones(metadata["shape"]) * np.nan
 
-    def _receive_new_data(self, uid: str, subuid: str, new_data: dict, metadata: dict):
+    def _receive_new_data(
+        self,
+        uid: str,
+        subuid: str,
+        number_of_events: int,
+        new_data: dict,
+        metadata: dict,
+    ):
         for detector_name, detector_values in new_data.items():
             if detector_name in metadata and "position" in metadata[detector_name]:
                 position = metadata[detector_name]["position"]
@@ -101,7 +108,7 @@ class DataAggregator(QObject):
 
         self.new_data_received.emit(subuid)
 
-        self.total_processed_data_events += 1
+        self.total_processed_data_events += number_of_events
 
 
 class PlotDisplay(IPlotDisplay):

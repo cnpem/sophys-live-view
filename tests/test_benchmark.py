@@ -1,66 +1,51 @@
 import time
 from uuid import uuid4
 
-import numpy as np
 import pytest
 from qtpy.QtCore import QObject, Signal
 
-from sophys_live_view.utils.bluesky_data_source import DataSource
-from sophys_live_view.utils.data_source_manager import DataSourceManager
+from sophys_live_view.utils.bluesky_data_source import BatchReceivedDataSource
 from sophys_live_view.widgets import PlotDisplay
 
 
-class BigStreamsDataSource(DataSource):
+class BigStreamsDataSource(BatchReceivedDataSource):
     def __init__(
         self, signals_per_event: int, events_per_stream: int, number_of_streams: int
     ):
         super().__init__()
 
+        self._dispatch_time = 25
+
         self._signals_per_event = signals_per_event
         self._events_per_stream = events_per_stream
         self._number_of_streams = number_of_streams
 
-    def run(self):
+    def process(self):
         def _send_stream():
             uid = str(uuid4())
 
             signals = {f"signal_{n}" for n in range(self._signals_per_event)}
-            self.new_data_stream.emit(
+            self.notify_new_data_stream(
                 uid,
                 "Stream",
                 signals,
                 {},
-                {},
+                set(),
                 [],
                 {},
             )
 
             for i in range(self._events_per_stream):
-                data = {
-                    f"signal_{n}": np.array([i]) for n in range(self._signals_per_event)
-                }
-                self.new_data_received.emit(uid, data, {})
+                data = {f"signal_{n}": [i] for n in range(self._signals_per_event)}
+                self.notify_new_data_received(uid, 1, data, {})
 
-            self.data_stream_closed.emit(uid)
+            self.notify_data_stream_closed(uid)
 
         for _ in range(self._number_of_streams):
             _send_stream()
 
     def total_number_of_events(self):
         return self._events_per_stream * self._number_of_streams
-
-    def close_thread(self):
-        assert not self.isRunning()
-
-
-@pytest.fixture
-def empty_manager():
-    manager = DataSourceManager(polling_time=0.05)
-
-    yield manager
-
-    if manager.isRunning():
-        manager.stop()
 
 
 class MockSignals(QObject):
@@ -76,9 +61,9 @@ def signals_mocker():
 
 
 @pytest.fixture
-def display(empty_manager, signals_mocker, qtbot):
+def display(data_source_manager, signals_mocker, qtbot):
     display = PlotDisplay(
-        empty_manager,
+        data_source_manager,
         signals_mocker.selected_streams_changed,
         signals_mocker.selected_signals_changed_1d,
         signals_mocker.selected_signals_changed_2d,
@@ -101,7 +86,7 @@ def test_big_streams(
     events_per_stream,
     number_of_streams,
     benchmark,
-    empty_manager,
+    data_source_manager,
     display,
     qtbot,
 ):
@@ -114,8 +99,8 @@ def test_big_streams(
         data_source = BigStreamsDataSource(
             signals_per_event, events_per_stream, number_of_streams
         )
-        empty_manager.add_data_source(data_source)
-        empty_manager.start()
+        data_source_manager.add_data_source(data_source)
+        data_source_manager.start()
 
         _start_time = time.time()
         while (
@@ -124,7 +109,7 @@ def test_big_streams(
         ):
             if time.time() - _start_time >= 10.0:
                 pytest.fail(
-                    f"Timed out: Processed {data_aggr.total_processed_data_events} events."
+                    f"Timed out: Processed {data_aggr.total_processed_data_events} events out of {data_source.total_number_of_events()}."
                 )
 
             qtbot.wait(25)
