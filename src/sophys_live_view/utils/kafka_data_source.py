@@ -62,7 +62,7 @@ class KafkaDataSource(BlueskyDataSource):
                 if self._closed:
                     break
 
-                self._logger.debug("Received new message: %s", str(message))
+                self._logger.debug("Received new message: %s", message)
 
                 done_preloading = message.offset + 1 >= current_offset
                 self.notify_go_to_last_automatically(done_preloading)
