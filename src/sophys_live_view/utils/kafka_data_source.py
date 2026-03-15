@@ -65,7 +65,7 @@ class KafkaDataSource(BlueskyDataSource):
                 self._logger.debug("Received new message: %s", str(message))
 
                 done_preloading = message.offset + 1 >= current_offset
-                self.go_to_last_automatically.emit(done_preloading)
+                self.notify_go_to_last_automatically(done_preloading)
 
                 document_type, document = message.value
 
@@ -83,7 +83,7 @@ class KafkaDataSource(BlueskyDataSource):
                             * (message.offset - start_offset + 1)
                             / (current_offset - start_offset)
                         )
-                    self.loading_status.emit(
+                    self.notify_loading_status(
                         "Loading runs from Kafka...", completion_percent
                     )
 

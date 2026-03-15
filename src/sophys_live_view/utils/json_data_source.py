@@ -10,7 +10,7 @@ class JSONDataSource(BlueskyDataSource):
 
         self._file_path = pathlib.Path(file_path)
 
-    def run(self):
+    def process(self):
         self.loading_status.emit("Loading JSON file...", 0.0)
 
         file_contents = None

@@ -6,7 +6,7 @@ import typing
 from event_model import DocumentRouter, Event, EventDescriptor, RunStart, RunStop
 import numpy as np
 
-from .data_source import DataSource
+from .data_source import BatchReceivedDataSource, DataSource
 
 
 class DocumentParser(DocumentRouter):
@@ -86,9 +86,9 @@ class DocumentParser(DocumentRouter):
         pass
 
 
-class BlueskyDataSource(DataSource, DocumentParser):
+class BlueskyDataSource(BatchReceivedDataSource, DocumentParser):
     def __init__(self):
-        DataSource.__init__(self)
+        BatchReceivedDataSource.__init__(self)
         DocumentRouter.__init__(self)
 
         self._run_metadata = dict()
@@ -136,7 +136,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
 
         self._descriptors[descriptor_uid] = start_uid
 
-        self.new_data_stream.emit(
+        self.notify_new_data_stream(
             start_uid,
             self._run_metadata[start_uid]["name"],
             fields,
@@ -153,7 +153,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
         if start_uid is None:
             return
 
-        received_data = {key: np.array([val]) for key, val in values.items()}
+        received_data = {key: [val] for key, val in values.items()}
 
         start_metadata = self._run_metadata[start_uid]["metadata"]
         metadata = defaultdict(lambda: dict())
@@ -168,18 +168,18 @@ class BlueskyDataSource(DataSource, DocumentParser):
             if snaking[1] and pos[0] % 2:
                 pos[1] = shape[1] - pos[1] - 1
 
-            position = tuple(map(int, pos))
+            position = list(map(int, pos))
 
             for key in start_metadata["detectors"]:
                 metadata[key]["position"] = position
 
-        received_data["time"] = np.array([timestamp]) - start_metadata.get("time", 0)
-        received_data["seq_num"] = np.array([seq_num])
+        received_data["time"] = [timestamp - start_metadata.get("time", 0)]
+        received_data["seq_num"] = [seq_num]
 
-        self.new_data_received.emit(start_uid, received_data, metadata)
+        self.notify_new_data_received(start_uid, 1, received_data, metadata)
 
     def on_run_ended(self, start_uid):
-        self.data_stream_closed.emit(start_uid)
+        self.notify_data_stream_closed(start_uid)
 
     def __getattribute__(self, attr_name):
         if attr_name == "start":
