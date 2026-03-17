@@ -169,15 +169,12 @@ class BatchReceivedDataSource(DataSource):
 
         common_keys = original_keys & to_append_keys
         for key in common_keys:
-            if isinstance(original_map[key], MutableSequence):
-                assert isinstance(map_to_append[key], MutableSequence)
-                original_map[key].extend(map_to_append[key])
-                continue
-
             if isinstance(original_map[key], dict):
                 assert isinstance(map_to_append[key], dict)
                 self._extend_sequences_in_map(original_map[key], map_to_append[key])
                 continue
+
+            original_map[key].extend(map_to_append[key])
 
         new_keys = to_append_keys - original_keys
         for key in new_keys:
