@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from functools import wraps
 from typing import TypeAlias, Union
 
-from qtpy.QtCore import QThread, QTimer, Signal, Slot
+from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
+
+from .thread_utils import _ProxyThreadObject, is_main_thread
 
 DATA_RECEIVED_DATA_TYPE: TypeAlias = dict[str, MutableSequence]
 DATA_RECEIVED_METADATA_TYPE: TypeAlias = dict[str, dict[str, MutableSequence]]
@@ -61,10 +63,7 @@ class DataSource(QThread):
     def __init__(self):
         super().__init__()
 
-        # NOTE: This indirection is required so that we run our code while
-        # the Qt event loop is processing events. If we directly override
-        # the run method instead, this will not occur.
-        self.started.connect(self.process)
+        self.__inner_obj = _ProxyThreadObject(self, self.process)
 
     @Slot()
     def process(self):
@@ -90,9 +89,12 @@ def _ensure_dispatch_timer(func):
 
     @wraps(func)
     def __inner(self, *args, **kwargs):
+        __tracebackhide__ = True
         if not hasattr(self, "_dispatch_timer") and not self._should_passthrough:
             self._dispatch_timer = QTimer(singleShot=True)
-            self._dispatch_timer.timeout.connect(self._dispatch_data)
+            self._dispatch_timer.timeout.connect(
+                self._dispatch_data, type=Qt.ConnectionType.DirectConnection
+            )
 
         return func(self, *args, **kwargs)
 
@@ -183,6 +185,10 @@ class BatchReceivedDataSource(DataSource):
 
     @Slot()
     def _dispatch_data(self):
+        assert not is_main_thread(QThread.currentThread()), (
+            "Running processing in main thread!"
+        )
+
         for uid, (number_of_events, data, metadata) in self._batch_container.items():
             self.new_data_received.emit(uid, number_of_events, data, metadata)
 
