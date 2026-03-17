@@ -21,6 +21,8 @@ class BigStreamsDataSource(BatchReceivedDataSource):
         self._number_of_streams = number_of_streams
 
     def process(self):
+        empty_dict = {}
+
         def _send_stream():
             uid = str(uuid4())
 
@@ -37,7 +39,7 @@ class BigStreamsDataSource(BatchReceivedDataSource):
 
             for i in range(self._events_per_stream):
                 data = {f"signal_{n}": [i] for n in range(self._signals_per_event)}
-                self.notify_new_data_received(uid, 1, data, {})
+                self.notify_new_data_received(uid, 1, data, empty_dict)
 
             self.notify_data_stream_closed(uid)
 
