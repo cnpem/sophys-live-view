@@ -168,10 +168,10 @@ class BlueskyDataSource(BatchReceivedDataSource, DocumentParser):
             if snaking[1] and pos[0] % 2:
                 pos[1] = shape[1] - pos[1] - 1
 
-            position = list(map(int, pos))
+            position = tuple(map(int, pos))
 
             for key in start_metadata["detectors"]:
-                metadata[key]["position"] = position
+                metadata[key]["position"] = [position]
 
         received_data["time"] = [timestamp - start_metadata.get("time", 0)]
         received_data["seq_num"] = [seq_num]
@@ -181,15 +181,14 @@ class BlueskyDataSource(BatchReceivedDataSource, DocumentParser):
     def on_run_ended(self, start_uid):
         self.notify_data_stream_closed(start_uid)
 
+    def event(self, event):
+        if isinstance(event, dict):
+            return DocumentParser.event(self, event)
+        return DataSource.event(self, event)
+
     def __getattribute__(self, attr_name):
         if attr_name == "start":
             return partial(DocumentParser.start, self)
-        if attr_name == "event":
-            return partial(DocumentParser.event, self)
         if attr_name == "stop":
             return partial(DocumentParser.stop, self)
         return super().__getattribute__(attr_name)
-
-    def start_thread(self):
-        """Needed because DocumentParser overrides the 'start' method."""
-        DataSource.start(self)

@@ -26,10 +26,10 @@ class KafkaDataSource(BlueskyDataSource):
 
         self._closed = False
 
-    def run(self):
+    def _start_processing(self):
         major_kafka_python_ver = int(version("kafka-python").strip().split(".")[0])
         if major_kafka_python_ver >= 3:
-            consumer = KafkaConsumer(
+            self._consumer = KafkaConsumer(
                 self._topic_name,
                 bootstrap_servers=self._bootstrap_servers,
                 value_deserializer=msgpack.unpackb,
@@ -38,45 +38,51 @@ class KafkaDataSource(BlueskyDataSource):
             )
         else:
             # NOTE: Remove needed argument in kafka-python 3.x, but non-existent on older versions
-            consumer = KafkaConsumer(
+            self._consumer = KafkaConsumer(
                 self._topic_name,
                 bootstrap_servers=self._bootstrap_servers,
                 value_deserializer=msgpack.unpackb,
                 consumer_timeout_ms=250,
             )
 
-        all_partitions = [
+        self._all_partitions = [
             TopicPartition(self._topic_name, p)
-            for p in consumer.partitions_for_topic(self._topic_name)
+            for p in self._consumer.partitions_for_topic(self._topic_name)
         ]
 
-        start_offset = 0
+        self._start_offset = 0
         if self._hour_offset:
             now = datetime.now(timezone.utc)
             hour_offset = int(
                 (now - timedelta(hours=self._hour_offset)).timestamp() * 1000
             )
-            timestamp_offsets = consumer.offsets_for_times(
-                {p: hour_offset for p in all_partitions}
+            timestamp_offsets = self._consumer.offsets_for_times(
+                {p: hour_offset for p in self._all_partitions}
             )
 
             for partition, offset_ts in timestamp_offsets.items():
                 if offset_ts is not None:
-                    consumer.seek(partition, offset_ts.offset)
-                    start_offset = offset_ts.offset
+                    self._consumer.seek(partition, offset_ts.offset)
+                    self._start_offset = offset_ts.offset
 
-        end_offsets = consumer.end_offsets(all_partitions)
-        current_offset = list(end_offsets.values())[0]
+        end_offsets = self._consumer.end_offsets(self._all_partitions)
+        self._current_offset = list(end_offsets.values())[0]
+
+        super()._start_processing()
+
+    def process(self):
+        if self._closed:
+            return
 
         sent_completed_status = False
-        while not self._closed:
-            for message in consumer:
-                if self._closed:
-                    break
 
+        records = self._consumer.poll(timeout_ms=250)
+        for partition in self._all_partitions:
+            batched_messages = records.get(partition, tuple())
+            for message in batched_messages:
                 self._logger.debug("Received new message: %s", message)
 
-                done_preloading = message.offset + 1 >= current_offset
+                done_preloading = message.offset + 1 >= self._current_offset
                 self.notify_go_to_last_automatically(done_preloading)
 
                 document_type, document = message.value
@@ -92,8 +98,8 @@ class KafkaDataSource(BlueskyDataSource):
                     else:
                         completion_percent = (
                             100
-                            * (message.offset - start_offset + 1)
-                            / (current_offset - start_offset)
+                            * (message.offset - self._start_offset + 1)
+                            / (self._current_offset - self._start_offset)
                         )
                     self.notify_loading_status(
                         "Loading runs from Kafka...", completion_percent
@@ -103,3 +109,5 @@ class KafkaDataSource(BlueskyDataSource):
 
     def close_thread(self):
         self._closed = True
+
+        super().close_thread()

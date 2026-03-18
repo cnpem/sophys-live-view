@@ -1,9 +1,8 @@
 from collections.abc import MutableSequence
 from dataclasses import dataclass
-from functools import wraps
 from typing import TypeAlias, Union
 
-from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
+from qtpy.QtCore import QObject, Qt, QThread, QTimer, Signal, Slot
 
 from .thread_utils import _ProxyThreadObject, is_main_thread
 
@@ -11,7 +10,7 @@ DATA_RECEIVED_DATA_TYPE: TypeAlias = dict[str, MutableSequence]
 DATA_RECEIVED_METADATA_TYPE: TypeAlias = dict[str, dict[str, MutableSequence]]
 
 
-class DataSource(QThread):
+class DataSource(QObject):
     """
     The base for any DataSource, containing the required signals and some common functionality.
     """
@@ -63,7 +62,20 @@ class DataSource(QThread):
     def __init__(self):
         super().__init__()
 
-        self.__inner_obj = _ProxyThreadObject(self, self.process)
+        self._thread = QThread()
+        self.moveToThread(self._thread)
+
+        self.__inner_obj = _ProxyThreadObject(self._thread, self._start_processing)
+
+    @Slot()
+    def _start_processing(self):
+        self._polling_timer = QTimer()
+        self._polling_timer.setSingleShot(False)
+        self._polling_timer.setInterval(25)
+        self._polling_timer.timeout.connect(self.process)
+        self._polling_timer.start()
+
+        self._thread.finished.connect(self._polling_timer.stop)
 
     @Slot()
     def process(self):
@@ -72,33 +84,15 @@ class DataSource(QThread):
 
     def start_thread(self):
         """Start processing this DataSource."""
-        QThread.start(self)
+        self._thread.start()
 
     def close_thread(self):
         """Stop processing this DataSource."""
-        QThread.quit(self)
+        self._thread.quit()
 
-
-def _ensure_dispatch_timer(func):
-    """
-    Helper for BatchReceivedDataMixin to create ensure a dispatch timer exists when entering a method.
-
-    This needs to be done so that the dispatch timer is created in the appropriate thread context, which
-    is why it cannot be created on __init__ (which is ran in the main thread).
-    """
-
-    @wraps(func)
-    def __inner(self, *args, **kwargs):
-        __tracebackhide__ = True
-        if not hasattr(self, "_dispatch_timer") and not self._should_passthrough:
-            self._dispatch_timer = QTimer(singleShot=True)
-            self._dispatch_timer.timeout.connect(
-                self._dispatch_data, type=Qt.ConnectionType.DirectConnection
-            )
-
-        return func(self, *args, **kwargs)
-
-    return __inner
+    def wait(self):
+        """Wait until this DataSource stops processing."""
+        self._thread.wait()
 
 
 class BatchReceivedDataSource(DataSource):
@@ -131,7 +125,16 @@ class BatchReceivedDataSource(DataSource):
 
         self._batch_container: self.BATCH_CONTAINER_TYPE = dict()
 
-    @_ensure_dispatch_timer
+    def _start_processing(self):
+        super()._start_processing()
+
+        self._dispatch_timer = QTimer(singleShot=True)
+        self._dispatch_timer.timeout.connect(
+            self._dispatch_data, type=Qt.ConnectionType.DirectConnection
+        )
+
+        self._thread.finished.connect(self._dispatch_timer.stop)
+
     def notify_new_data_received(
         self,
         uid: str,
