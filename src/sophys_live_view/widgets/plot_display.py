@@ -95,7 +95,10 @@ class DataAggregator(QObject):
             if detector_name in metadata and "position" in metadata[detector_name]:
                 positions = metadata[detector_name]["position"]
                 for value, position in zip(detector_values, positions):
-                    self._data_cache[subuid][detector_name][position] = value
+                    try:
+                        self._data_cache[subuid][detector_name][position] = value
+                    except ValueError:  # Received an array for a data point
+                        pass
             else:
                 self._data_cache[subuid][detector_name] = np.append(
                     self._data_cache[subuid][detector_name], detector_values
