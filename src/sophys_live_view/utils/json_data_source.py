@@ -21,3 +21,5 @@ class JSONDataSource(BlueskyDataSource):
             self(document_type, document)
 
         self.loading_status.emit("Loading JSON file...", 100.0)
+
+        self.dispatch_data.emit()

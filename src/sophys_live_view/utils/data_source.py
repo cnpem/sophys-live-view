@@ -2,7 +2,7 @@ from collections.abc import MutableSequence
 from dataclasses import dataclass
 from typing import TypeAlias, Union
 
-from qtpy.QtCore import QObject, Qt, QThread, QTimer, Signal, Slot
+from qtpy.QtCore import QObject, Qt, QThread, Signal, Slot
 
 from .thread_utils import _ProxyThreadObject, is_main_thread
 
@@ -24,6 +24,9 @@ class DataSource(QObject):
     data_stream_closed = Signal(str)  # uid
     go_to_last_automatically = Signal(bool)  # Whether to auto-update the display or not
     loading_status = Signal(str, float)  # status message, completion percentage
+
+    reprocess = Signal()
+    """Signal for triggering reprocessing of this DataSource"""
 
     def notify_new_data_stream(
         self,
@@ -69,13 +72,8 @@ class DataSource(QObject):
 
     @Slot()
     def _start_processing(self):
-        self._polling_timer = QTimer()
-        self._polling_timer.setSingleShot(False)
-        self._polling_timer.setInterval(25)
-        self._polling_timer.timeout.connect(self.process)
-        self._polling_timer.start()
-
-        self._thread.finished.connect(self._polling_timer.stop)
+        self.reprocess.connect(self.process, type=Qt.ConnectionType.QueuedConnection)
+        self.reprocess.emit()
 
     @Slot()
     def process(self):
@@ -104,6 +102,9 @@ class BatchReceivedDataSource(DataSource):
     but it does increase the latency in receiving new data.
     """
 
+    dispatch_data = Signal()
+    """Signal used to signal to the DataSource to dispatch all its accumulated data."""
+
     @dataclass
     class BatchContainerItem:
         number_of_events: int
@@ -115,25 +116,18 @@ class BatchReceivedDataSource(DataSource):
 
     BATCH_CONTAINER_TYPE: TypeAlias = dict[str, BatchContainerItem]
 
-    def __init__(self, dispatch_time_ms: int = 50):
+    def __init__(self):
         super().__init__()
 
         self._should_passthrough = (
             False  # Testing helper for passing data directly through, without batching.
         )
-        self._dispatch_time = dispatch_time_ms
 
         self._batch_container: self.BATCH_CONTAINER_TYPE = dict()
 
-    def _start_processing(self):
-        super()._start_processing()
-
-        self._dispatch_timer = QTimer(singleShot=True)
-        self._dispatch_timer.timeout.connect(
-            self._dispatch_data, type=Qt.ConnectionType.DirectConnection
+        self.dispatch_data.connect(
+            self._dispatch_data, type=Qt.ConnectionType.QueuedConnection
         )
-
-        self._thread.finished.connect(self._dispatch_timer.stop)
 
     def notify_new_data_received(
         self,
@@ -155,9 +149,6 @@ class BatchReceivedDataSource(DataSource):
             self._batch_container[uid].number_of_events += number_of_events
             self._extend_sequences_in_map(self._batch_container[uid].data, data)
             self._extend_sequences_in_map(self._batch_container[uid].metadata, metadata)
-
-        if not self._dispatch_timer.isActive():
-            self._dispatch_timer.start(self._dispatch_time)
 
     _RECURSIVE_DICT_TYPE: TypeAlias = dict[
         str, Union[MutableSequence, "_RECURSIVE_DICT_TYPE"]
