@@ -14,8 +14,6 @@ class BigStreamsDataSource(BatchReceivedDataSource):
     ):
         super().__init__()
 
-        self._dispatch_time = 25
-
         self._signals_per_event = signals_per_event
         self._events_per_stream = events_per_stream
         self._number_of_streams = number_of_streams
@@ -45,6 +43,8 @@ class BigStreamsDataSource(BatchReceivedDataSource):
 
         for _ in range(self._number_of_streams):
             _send_stream()
+
+            self.dispatch_data.emit()
 
     def total_number_of_events(self):
         return self._events_per_stream * self._number_of_streams

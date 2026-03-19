@@ -95,6 +95,18 @@ class KafkaDataSource(BlueskyDataSource):
 
                 self(document_type, document)
 
+        incoming_bytes = (
+            self._consumer.metrics()
+            .get("consumer-metrics", {})
+            .get("incoming-byte-rate", 0)
+        )
+        self._logger.debug(
+            "Total received data in last 5s (kB): %.2f", incoming_bytes / 1024
+        )
+
+        self.dispatch_data.emit()
+        self.reprocess.emit()
+
     def close_thread(self):
         self._closed = True
 

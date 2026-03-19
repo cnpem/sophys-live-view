@@ -99,6 +99,7 @@ class BatchedDummyDataSource(BatchReceivedDataSource):
 
         for signal_name, arguments in _data:
             getattr(self, "notify_" + signal_name)(*arguments)
+        self.dispatch_data.emit()
 
 
 @pytest.fixture
