@@ -34,6 +34,9 @@ class KafkaDataSource(BlueskyDataSource):
                 bootstrap_servers=self._bootstrap_servers,
                 value_deserializer=msgpack.unpackb,
                 consumer_timeout_ms=250,
+                metrics_sample_window_ms=5000,
+                max_partition_fetch_bytes=1024 * 1024,
+                max_poll_records=5000,
                 receive_message_max_bytes=100000000,
             )
         else:
@@ -43,6 +46,9 @@ class KafkaDataSource(BlueskyDataSource):
                 bootstrap_servers=self._bootstrap_servers,
                 value_deserializer=msgpack.unpackb,
                 consumer_timeout_ms=250,
+                metrics_sample_window_ms=5000,
+                max_partition_fetch_bytes=1024 * 1024,
+                max_poll_records=5000,
             )
 
         self._all_partitions = [
@@ -76,7 +82,7 @@ class KafkaDataSource(BlueskyDataSource):
 
         sent_completed_status = False
 
-        records = self._consumer.poll(timeout_ms=250)
+        records = self._consumer.poll(timeout_ms=200)
         for partition in self._all_partitions:
             batched_messages = records.get(partition, tuple())
             for message in batched_messages:
