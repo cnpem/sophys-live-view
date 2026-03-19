@@ -23,7 +23,7 @@ def viewer(data_source_manager, signals_mocker, qtbot):
     return selector
 
 
-def test_acquire_metadata(viewer, data_source_manager, qtbot):
+def test_acquire_metadata(viewer, data_source_manager, dummy_data_source, qtbot):
     name_to_uid = {}
 
     data_source_manager.new_data_stream.connect(
@@ -44,11 +44,14 @@ def test_acquire_metadata(viewer, data_source_manager, qtbot):
             == "ghi"
         )
 
+    data_source_manager.add_data_source(dummy_data_source)
     data_source_manager.start()
     qtbot.waitUntil(metadata_complete, timeout=1000)
 
 
-def test_select_stream(viewer, data_source_manager, signals_mocker, qtbot):
+def test_select_stream(
+    viewer, data_source_manager, dummy_data_source, signals_mocker, qtbot
+):
     uids_and_names = []
 
     data_source_manager.new_data_stream.connect(
@@ -62,6 +65,7 @@ def test_select_stream(viewer, data_source_manager, signals_mocker, qtbot):
         assert viewer._tab.tabText(0) == "abc"
         assert viewer._tab.tabText(1) == "ghi"
 
+    data_source_manager.add_data_source(dummy_data_source)
     with qtbot.waitSignals([data_source_manager.new_data_stream] * 2, timeout=1000):
         data_source_manager.start()
 
@@ -69,17 +73,15 @@ def test_select_stream(viewer, data_source_manager, signals_mocker, qtbot):
     qtbot.waitUntil(tabs_populated, timeout=1000)
 
     abc_page: QTableWidget = viewer._tab.widget(0)
-    assert abc_page.rowCount() == 2
+    assert abc_page.rowCount() == 1
     assert abc_page.item(0, 0).text() == "stream_name"
     assert abc_page.item(0, 1).text() == "abc"
-    assert abc_page.item(1, 0).text() == "uid"
 
     ghi_page: QTableWidget = viewer._tab.widget(1)
-    assert ghi_page.rowCount() == 4
+    assert ghi_page.rowCount() == 3
     assert ghi_page.item(0, 0).text() == "stream_name"
     assert ghi_page.item(0, 1).text() == "ghi"
-    assert ghi_page.item(1, 0).text() == "uid"
-    assert ghi_page.item(2, 0).text() == "configuration - one"
+    assert ghi_page.item(1, 0).text() == "configuration - one"
+    assert ghi_page.item(1, 1).text() == "ghi"
+    assert ghi_page.item(2, 0).text() == "configuration - two - three"
     assert ghi_page.item(2, 1).text() == "ghi"
-    assert ghi_page.item(3, 0).text() == "configuration - two - three"
-    assert ghi_page.item(3, 1).text() == "ghi"

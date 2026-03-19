@@ -1,12 +1,11 @@
 from abc import abstractmethod
 from collections import defaultdict
-from functools import partial
 import typing
 
 from event_model import DocumentRouter, Event, EventDescriptor, RunStart, RunStop
 import numpy as np
 
-from .data_source import DataSource
+from .data_source import BatchReceivedDataSource
 
 
 class DocumentParser(DocumentRouter):
@@ -86,13 +85,18 @@ class DocumentParser(DocumentRouter):
         pass
 
 
-class BlueskyDataSource(DataSource, DocumentParser):
+class BlueskyDataSource(BatchReceivedDataSource):
     def __init__(self):
-        DataSource.__init__(self)
-        DocumentRouter.__init__(self)
+        super().__init__()
 
         self._run_metadata = dict()
         self._descriptors = dict()
+
+        self._parser = DocumentParser()
+        self._parser.on_new_run_started = self.on_new_run_started
+        self._parser.on_new_descriptor = self.on_new_descriptor
+        self._parser.on_new_event = self.on_new_event
+        self._parser.on_run_ended = self.on_run_ended
 
     def on_new_run_started(self, display_name: str, metadata: dict):
         uid = metadata["uid"]
@@ -136,7 +140,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
 
         self._descriptors[descriptor_uid] = start_uid
 
-        self.new_data_stream.emit(
+        self.notify_new_data_stream(
             start_uid,
             self._run_metadata[start_uid]["name"],
             fields,
@@ -153,7 +157,7 @@ class BlueskyDataSource(DataSource, DocumentParser):
         if start_uid is None:
             return
 
-        received_data = {key: np.array([val]) for key, val in values.items()}
+        received_data = {key: [val] for key, val in values.items()}
 
         start_metadata = self._run_metadata[start_uid]["metadata"]
         metadata = defaultdict(lambda: dict())
@@ -171,25 +175,15 @@ class BlueskyDataSource(DataSource, DocumentParser):
             position = tuple(map(int, pos))
 
             for key in start_metadata["detectors"]:
-                metadata[key]["position"] = position
+                metadata[key]["position"] = [position]
 
-        received_data["time"] = np.array([timestamp]) - start_metadata.get("time", 0)
-        received_data["seq_num"] = np.array([seq_num])
+        received_data["time"] = [timestamp - start_metadata.get("time", 0)]
+        received_data["seq_num"] = [seq_num]
 
-        self.new_data_received.emit(start_uid, received_data, metadata)
+        self.notify_new_data_received(start_uid, 1, received_data, metadata)
 
     def on_run_ended(self, start_uid):
-        self.data_stream_closed.emit(start_uid)
+        self.notify_data_stream_closed(start_uid)
 
-    def __getattribute__(self, attr_name):
-        if attr_name == "start":
-            return partial(DocumentParser.start, self)
-        if attr_name == "event":
-            return partial(DocumentParser.event, self)
-        if attr_name == "stop":
-            return partial(DocumentParser.stop, self)
-        return super().__getattribute__(attr_name)
-
-    def start_thread(self):
-        """Needed because DocumentParser overrides the 'start' method."""
-        DataSource.start(self)
+    def __call__(self, name, doc):
+        return self._parser(name, doc)
