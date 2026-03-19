@@ -61,7 +61,6 @@ def test_bluesky_load_from_json_batching(
     data_source_manager, file_name, event_count, test_data_path, qtbot
 ):
     data_source = JSONDataSource(str(test_data_path / file_name))
-    data_source._dispatch_time = 50  # Arbitrary time
     data_source_manager.add_data_source(data_source)
 
     with qtbot.waitSignal(
