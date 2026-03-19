@@ -1,12 +1,11 @@
 from abc import abstractmethod
 from collections import defaultdict
-from functools import partial
 import typing
 
 from event_model import DocumentRouter, Event, EventDescriptor, RunStart, RunStop
 import numpy as np
 
-from .data_source import BatchReceivedDataSource, DataSource
+from .data_source import BatchReceivedDataSource
 
 
 class DocumentParser(DocumentRouter):
@@ -86,13 +85,18 @@ class DocumentParser(DocumentRouter):
         pass
 
 
-class BlueskyDataSource(BatchReceivedDataSource, DocumentParser):
+class BlueskyDataSource(BatchReceivedDataSource):
     def __init__(self):
-        BatchReceivedDataSource.__init__(self)
-        DocumentRouter.__init__(self)
+        super().__init__()
 
         self._run_metadata = dict()
         self._descriptors = dict()
+
+        self._parser = DocumentParser()
+        self._parser.on_new_run_started = self.on_new_run_started
+        self._parser.on_new_descriptor = self.on_new_descriptor
+        self._parser.on_new_event = self.on_new_event
+        self._parser.on_run_ended = self.on_run_ended
 
     def on_new_run_started(self, display_name: str, metadata: dict):
         uid = metadata["uid"]
@@ -181,14 +185,5 @@ class BlueskyDataSource(BatchReceivedDataSource, DocumentParser):
     def on_run_ended(self, start_uid):
         self.notify_data_stream_closed(start_uid)
 
-    def event(self, event):
-        if isinstance(event, dict):
-            return DocumentParser.event(self, event)
-        return DataSource.event(self, event)
-
-    def __getattribute__(self, attr_name):
-        if attr_name == "start":
-            return partial(DocumentParser.start, self)
-        if attr_name == "stop":
-            return partial(DocumentParser.stop, self)
-        return super().__getattribute__(attr_name)
+    def __call__(self, name, doc):
+        return self._parser(name, doc)
