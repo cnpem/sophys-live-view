@@ -2,6 +2,7 @@ from collections.abc import MutableSequence
 from dataclasses import dataclass
 from typing import TypeAlias, Union
 
+import numpy as np
 from qtpy.QtCore import QObject, Qt, QThread, Signal, Slot
 
 from .thread_utils import _ProxyThreadObject, is_main_thread
@@ -166,6 +167,13 @@ class BatchReceivedDataSource(DataSource):
             if isinstance(original_map[key], dict):
                 assert isinstance(map_to_append[key], dict)
                 self._extend_sequences_in_map(original_map[key], map_to_append[key])
+                continue
+
+            if isinstance(original_map[key], np.ndarray):
+                assert isinstance(map_to_append[key], np.ndarray)
+                original_map[key] = np.concatenate(
+                    (original_map[key], map_to_append[key])
+                )
                 continue
 
             original_map[key].extend(map_to_append[key])
