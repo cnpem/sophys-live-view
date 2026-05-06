@@ -72,6 +72,10 @@ dev = [
     "py-spy",
     "memray",
 ]
+tiled = [
+    "tiled",
+    "bluesky-tiled-plugins",
+]
 all = [
     "sophys_live_view[dev]"
 ]

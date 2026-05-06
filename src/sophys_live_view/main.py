@@ -5,7 +5,6 @@ import sys
 
 from qtpy.QtWidgets import QApplication
 
-from .utils.kafka_data_source import KafkaDataSource
 from .widgets.main_window import SophysLiveView
 
 
@@ -22,6 +21,12 @@ def entrypoint():
         "--bootstrap",
         default="localhost:60612",
         help="Kafka bootstrap server to use (default: localhost:60612).",
+    )
+    parser.add_argument(
+        "--tiled-url",
+        default=None,
+        type=str,
+        help="Tiled URL to connect to (default: None - Do not connect to Tiled).",
     )
     parser.add_argument(
         "--hour-offset",
@@ -60,11 +65,18 @@ def entrypoint():
     def __inner():
         app = QApplication(sys.argv)
 
-        kafka_data_source = KafkaDataSource(
-            args.topic, [args.bootstrap], hour_offset=args.hour_offset
-        )
+        if args.tiled_url:
+            from .utils.tiled_data_source import TiledDataSource
 
-        main_window = SophysLiveView([kafka_data_source], args.show_stats_by_default)
+            data_source = TiledDataSource(args.tiled_url, hour_offset=args.hour_offset)
+        else:
+            from .utils.kafka_data_source import KafkaDataSource
+
+            data_source = KafkaDataSource(
+                args.topic, [args.bootstrap], hour_offset=args.hour_offset
+            )
+
+        main_window = SophysLiveView([data_source], args.show_stats_by_default)
         main_window.show()
 
         return app.exec_()
@@ -102,6 +114,10 @@ def entrypoint():
                 "": {
                     "handlers": ["stream"],
                     "level": logging.INFO,
+                },
+                "httpx": {
+                    "handlers": ["stream"],
+                    "level": logging.WARNING,
                 },
                 "sophys.live_view": {
                     "handlers": ["stream"],
