@@ -1,4 +1,5 @@
 from collections.abc import MutableSequence
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import TypeAlias, Union
 
@@ -144,7 +145,7 @@ class BatchReceivedDataSource(DataSource):
 
         if uid not in self._batch_container:
             self._batch_container[uid] = self.BatchContainerItem(
-                number_of_events, data, metadata
+                number_of_events, deepcopy(data), deepcopy(metadata)
             )
         else:
             self._batch_container[uid].number_of_events += number_of_events
@@ -171,9 +172,7 @@ class BatchReceivedDataSource(DataSource):
 
             if isinstance(original_map[key], np.ndarray):
                 assert isinstance(map_to_append[key], np.ndarray)
-                original_map[key] = np.concatenate(
-                    (original_map[key], map_to_append[key])
-                )
+                original_map[key] = np.append(original_map[key], map_to_append[key])
                 continue
 
             original_map[key].extend(map_to_append[key])
