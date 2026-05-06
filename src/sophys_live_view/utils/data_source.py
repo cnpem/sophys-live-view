@@ -28,7 +28,10 @@ class DataSource(QObject):
     loading_status = Signal(str, float)  # status message, completion percentage
 
     reprocess = Signal()
-    """Signal for triggering reprocessing of this DataSource"""
+    """Signal for triggering reprocessing of this DataSource."""
+
+    data_requested = Signal(str, str)  # uid, signal_name
+    """Signal for requesting data from this DataSource."""
 
     def notify_new_data_stream(
         self,

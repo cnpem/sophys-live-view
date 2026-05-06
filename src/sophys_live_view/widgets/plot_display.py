@@ -13,7 +13,12 @@ from .plot_actions import DerivativeAction
 class DataAggregator(QObject):
     new_data_received = Signal(str)  # subuid
 
-    def __init__(self, new_stream_signal: Signal, new_data_signal: Signal):
+    def __init__(
+        self,
+        new_stream_signal: Signal,
+        new_data_signal: Signal,
+        request_data_signal: Signal | None = None,
+    ):
         """
         Aggregate received data into useful containers.
 
@@ -34,6 +39,8 @@ class DataAggregator(QObject):
         new_stream_signal.connect(self._on_new_stream)
         new_data_signal.connect(self._receive_new_data)
 
+        self.request_data_from_source = request_data_signal
+
         # NOTE: Used for testing.
         self.total_processed_data_events = 0
 
@@ -42,6 +49,11 @@ class DataAggregator(QObject):
         if force_1d and data is not None:
             data = data.flatten()
             data = data[~np.isnan(data)]
+
+        if data is None and self.request_data_from_source is not None:
+            print(f"Requesting data for {signal_name}")
+            self.request_data_from_source.emit(uid, signal_name)
+
         return data
 
     def get_metadata(self, uid: str):
@@ -121,6 +133,7 @@ class PlotDisplay(IPlotDisplay):
         selected_signals_changed_2d: Signal,
         custom_signal_added: Signal,
         show_stats_by_default: bool = False,
+        request_data_from_source: Signal | None = None,
     ):
         super().__init__()
 
@@ -173,6 +186,7 @@ class PlotDisplay(IPlotDisplay):
         self._data_aggregator = DataAggregator(
             data_source_manager.new_data_stream,
             data_source_manager.new_data_received,
+            request_data_from_source,
         )
         self._data_aggregator.new_data_received.connect(self._update_plots_maybe)
 
@@ -220,27 +234,16 @@ class PlotDisplay(IPlotDisplay):
         for uid, stream_name in new_uids_and_names:
             self._stacked_widget.setCurrentWidget(self._plots)
 
-            signals = self._data_aggregator.get_signals(uid)
-
             if self._plots.widget(0).isVisible():
-                for detector_name in sorted(signals):
-                    if detector_name not in self._1d_y_axis_names[uid]:
-                        continue
-
+                for detector_name in sorted(self._1d_y_axis_names[uid]):
                     self._configure_1d_tab(uid, stream_name, detector_name, 0)
 
             if self._plots.widget(1).isVisible():
-                for detector_name in sorted(signals):
-                    if detector_name not in self._2d_z_axis_names[uid]:
-                        continue
-
+                for detector_name in sorted(self._2d_z_axis_names[uid]):
                     self._configure_2d_scatter_tab(uid, stream_name, detector_name, 1)
 
             if self._plots.widget(2).isVisible():
-                for detector_name in sorted(signals):
-                    if detector_name not in self._2d_z_axis_names[uid]:
-                        continue
-
+                for detector_name in sorted(self._2d_z_axis_names[uid]):
                     self._configure_2d_grid_tab(uid, stream_name, detector_name, 2)
 
     def _configure_1d_tab(
@@ -258,6 +261,9 @@ class PlotDisplay(IPlotDisplay):
 
         # Check if the array is a non-empty numeric array
         def _is_numeric(arr):
+            if arr is None:
+                return False
+
             try:
                 a = np.asarray(arr, dtype=float)
                 return a.size > 0

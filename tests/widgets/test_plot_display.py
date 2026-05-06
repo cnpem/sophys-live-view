@@ -9,6 +9,7 @@ class MockSignals(QObject):
     selected_signals_changed_1d = Signal(str, set)
     selected_signals_changed_2d = Signal(str, str, set)
     custom_signal_added = Signal(str, str, str)
+    request_data = Signal(str, str)
 
 
 @pytest.fixture
@@ -24,6 +25,7 @@ def display(data_source_manager, signals_mocker, qtbot):
         signals_mocker.selected_signals_changed_1d,
         signals_mocker.selected_signals_changed_2d,
         signals_mocker.custom_signal_added,
+        request_data_from_source=signals_mocker.request_data,
     )
     qtbot.addWidget(display)
     return display
@@ -146,6 +148,19 @@ def test_plot_add_custom_signal(
         custom_data[i] == det2_data[i] - det_data[i]
         for i in range(custom_data.shape[0])
     )
+
+
+def test_plot_request_data(
+    data_source_manager, dummy_data_source, display, signals_mocker, qtbot
+):
+    data_source_manager.add_data_source(dummy_data_source, signals_mocker.request_data)
+
+    data_aggr = display._data_aggregator
+    with qtbot.waitSignals([data_aggr.new_data_received] * 4, timeout=1000):
+        data_source_manager.start()
+
+    with qtbot.waitSignal(dummy_data_source.data_requested, timeout=1000):
+        data_aggr.get_data("abc", "non_existing_signal")
 
 
 # FIXME: Figure out why this test hangs when running with the other plot display tests,

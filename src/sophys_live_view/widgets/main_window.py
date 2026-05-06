@@ -2,7 +2,7 @@ from importlib.metadata import version
 from pathlib import Path
 from time import sleep
 
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QCloseEvent, QIcon
 from qtpy.QtWidgets import QMainWindow, QSplitter
 
@@ -14,6 +14,8 @@ from .signal_selector import SignalSelector
 
 
 class SophysLiveView(QMainWindow):
+    request_data_from_source = Signal(str, str)
+
     def __init__(
         self, data_sources, show_stats_by_default=False, parent=None, **kwargs
     ):
@@ -46,6 +48,7 @@ class SophysLiveView(QMainWindow):
             self.signal_selector.selected_signals_changed_2d,
             self.signal_selector.custom_signal_added,
             show_stats_by_default,
+            self.request_data_from_source,
         )
 
         self.signal_selector.set_plot_tab_changed_signal(
@@ -75,7 +78,9 @@ class SophysLiveView(QMainWindow):
         self.setCentralWidget(vertical_splitter)
 
         for data_source in data_sources:
-            self.data_source_manager.add_data_source(data_source)
+            self.data_source_manager.add_data_source(
+                data_source, self.request_data_from_source
+            )
 
         self.data_source_manager.start()
 

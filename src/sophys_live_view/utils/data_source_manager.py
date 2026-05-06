@@ -39,7 +39,9 @@ class DataSourceManager(QThread):
         self._unvisited_data_sources = set()
         self._visited_data_sources = set()
 
-    def add_data_source(self, data_source: DataSource):
+    def add_data_source(
+        self, data_source: DataSource, request_data_signal: Signal | None = None
+    ):
         data_source_uid = str(uuid.uuid4())
         self._data_sources[data_source_uid] = data_source
 
@@ -61,14 +63,15 @@ class DataSourceManager(QThread):
         def go_to_last_automatically_wrapper(*args):
             self.go_to_last_automatically.emit(data_source_uid, *args)
 
-        data_source.go_to_last_automatically.connect(
-            go_to_last_automatically_wrapper
-        )
+        data_source.go_to_last_automatically.connect(go_to_last_automatically_wrapper)
 
         def loading_status_wrapper(*args):
             self.loading_status.emit(data_source_uid, *args)
 
         data_source.loading_status.connect(loading_status_wrapper)
+
+        if request_data_signal is not None:
+            request_data_signal.connect(data_source.data_requested.emit)
 
         self._unvisited_data_sources.add(data_source_uid)
 
