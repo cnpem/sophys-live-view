@@ -687,7 +687,7 @@ Aside from the direct usage of <code>np</code>, for convenience, the following o
             environment[detector] = np.array([1, 2, 3])
 
         try:
-            eval(expression, locals=environment)
+            eval(expression, None, environment)
 
             return True, None
         except Exception as e:
