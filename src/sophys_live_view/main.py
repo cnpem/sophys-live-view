@@ -1,4 +1,6 @@
 import argparse
+import logging
+import logging.config
 import sys
 
 from qtpy.QtWidgets import QApplication
@@ -40,6 +42,12 @@ def entrypoint():
         action="store_true",
         help="Profile this application with memray.",
     )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        help="Log level for the logging module (default: INFO)",
+    )
 
     args = parser.parse_args()
 
@@ -74,6 +82,34 @@ def entrypoint():
             "You can run something like 'memray flamegraph profile.bin' to generate a report on memory usage."
         )
         return _ret
+
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "formatters": {
+                "basic": {
+                    "format": "[%(asctime)s %(levelname)s - %(name)s] %(message)s",
+                }
+            },
+            "handlers": {
+                "stream": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "basic",
+                    "level": "DEBUG",
+                },
+            },
+            "loggers": {
+                "": {
+                    "handlers": ["stream"],
+                    "level": logging.INFO,
+                },
+                "sophys.live_view": {
+                    "handlers": ["stream"],
+                    "level": args.log_level,
+                },
+            },
+        }
+    )
 
     return __inner()
 

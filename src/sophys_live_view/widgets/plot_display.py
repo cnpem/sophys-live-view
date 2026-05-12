@@ -34,6 +34,9 @@ class DataAggregator(QObject):
         new_stream_signal.connect(self._on_new_stream)
         new_data_signal.connect(self._receive_new_data)
 
+        # NOTE: Used for testing.
+        self.total_processed_data_events = 0
+
     def get_data(self, uid: str, signal_name: str, *, force_1d: bool = False):
         data = self._data_cache[uid].get(signal_name, None)
         if force_1d and data is not None:
@@ -80,14 +83,22 @@ class DataAggregator(QObject):
             for detector in metadata.get("detectors", []):
                 self._data_cache[subuid][detector] = np.ones(metadata["shape"]) * np.nan
 
-    def _receive_new_data(self, uid: str, subuid: str, new_data: dict, metadata: dict):
+    def _receive_new_data(
+        self,
+        uid: str,
+        subuid: str,
+        number_of_events: int,
+        new_data: dict,
+        metadata: dict,
+    ):
         for detector_name, detector_values in new_data.items():
             if detector_name in metadata and "position" in metadata[detector_name]:
-                position = metadata[detector_name]["position"]
-                assert len(detector_values) == 1, (
-                    "Received multiple values for a single data position."
-                )
-                self._data_cache[subuid][detector_name][position] = detector_values[0]
+                positions = metadata[detector_name]["position"]
+                for value, position in zip(detector_values, positions):
+                    try:
+                        self._data_cache[subuid][detector_name][position] = value
+                    except ValueError:  # Received an array for a data point
+                        pass
             else:
                 self._data_cache[subuid][detector_name] = np.append(
                     self._data_cache[subuid][detector_name], detector_values
@@ -97,6 +108,8 @@ class DataAggregator(QObject):
             self.add_custom_signal(subuid, name, expression)
 
         self.new_data_received.emit(subuid)
+
+        self.total_processed_data_events += number_of_events
 
 
 class PlotDisplay(IPlotDisplay):

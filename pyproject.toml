@@ -53,12 +53,20 @@ combine-as-imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = [
+    "--benchmark-disable",
+    "--benchmark-group-by=name",
+    "--benchmark-sort=fullname",
+    "--benchmark-columns=min,max,mean,stddev,rounds",
+    "--benchmark-time-unit=ms",
+]
 
 [project.optional-dependencies]
 dev = [
     "pre-commit",
     "pytest",
     "pytest-qt",
+    "pytest-benchmark",
     "faker",
     "ruff",
     "py-spy",

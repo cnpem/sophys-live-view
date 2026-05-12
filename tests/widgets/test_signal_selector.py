@@ -22,9 +22,12 @@ def selector(data_source_manager, signals_mocker, qtbot):
     return selector
 
 
-def test_default_signals_1d(data_source_manager, selector, signals_mocker, qtbot):
+def test_default_signals_1d(
+    data_source_manager, dummy_data_source, selector, signals_mocker, qtbot
+):
     uids_and_names = []
 
+    data_source_manager.add_data_source(dummy_data_source)
     data_source_manager.new_data_stream.connect(
         lambda uid, subuid, display_name, *_: uids_and_names.append(
             (subuid, display_name)
@@ -42,9 +45,12 @@ def test_default_signals_1d(data_source_manager, selector, signals_mocker, qtbot
     assert "det" in blocker.args[1], blocker.args
 
 
-def test_change_signals_1d(data_source_manager, selector, signals_mocker, qtbot):
+def test_change_signals_1d(
+    data_source_manager, dummy_data_source, selector, signals_mocker, qtbot
+):
     uids_and_names = []
 
+    data_source_manager.add_data_source(dummy_data_source)
     data_source_manager.new_data_stream.connect(
         lambda uid, subuid, display_name, *_: uids_and_names.append(
             (subuid, display_name)
@@ -71,10 +77,11 @@ def test_change_signals_1d(data_source_manager, selector, signals_mocker, qtbot)
 
 
 def test_maintain_signals_between_runs_1d(
-    data_source_manager, selector, signals_mocker, qtbot
+    data_source_manager, dummy_data_source, selector, signals_mocker, qtbot
 ):
     uids_and_names = []
 
+    data_source_manager.add_data_source(dummy_data_source)
     data_source_manager.new_data_stream.connect(
         lambda uid, subuid, display_name, *_: uids_and_names.append(
             (subuid, display_name)
@@ -109,9 +116,10 @@ def test_maintain_signals_between_runs_1d(
     assert "timestamp" in blocker.args[1], blocker.args
 
 
-def test_add_custom_signal(data_source_manager, selector, qtbot):
+def test_add_custom_signal(data_source_manager, dummy_data_source, selector, qtbot):
     uids_and_names = []
 
+    data_source_manager.add_data_source(dummy_data_source)
     data_source_manager.new_data_stream.connect(
         lambda uid, subuid, display_name, *_: uids_and_names.append(
             (subuid, display_name)
