@@ -21,7 +21,7 @@ class DataSource(QObject):
     new_data_received = Signal(
         str, int, dict, dict
     )  # uid, number of events, {signal : data}, {signal : metadata}
-    data_stream_closed = Signal(str)  # uid
+    data_stream_closed = Signal(str, int)  # uid, timestamp
     go_to_last_automatically = Signal(bool)  # Whether to auto-update the display or not
     loading_status = Signal(str, float)  # status message, completion percentage
 
@@ -51,8 +51,8 @@ class DataSource(QObject):
     ) -> None:
         self.new_data_received.emit(uid, number_of_events, data, metadata)
 
-    def notify_data_stream_closed(self, uid: str) -> None:
-        self.data_stream_closed.emit(uid)
+    def notify_data_stream_closed(self, uid: str, timestamp: int) -> None:
+        self.data_stream_closed.emit(uid, timestamp)
 
     def notify_go_to_last_automatically(self, auto_update: bool) -> None:
         self.go_to_last_automatically.emit(auto_update)

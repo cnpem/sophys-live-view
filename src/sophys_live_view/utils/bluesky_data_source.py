@@ -56,7 +56,7 @@ class DocumentParser(DocumentRouter):
         self.on_new_event(descriptor_uid, values, timestamp, seq_num)
 
     def stop(self, doc: RunStop):
-        self.on_run_ended(doc["run_start"])
+        self.on_run_ended(doc["run_start"], doc["time"])
 
     @abstractmethod
     def on_new_run_started(self, display_name: str, metadata: dict):
@@ -81,7 +81,7 @@ class DocumentParser(DocumentRouter):
         pass
 
     @abstractmethod
-    def on_run_ended(self, start_uid):
+    def on_run_ended(self, start_uid, timestamp):
         pass
 
 
@@ -182,8 +182,8 @@ class BlueskyDataSource(BatchReceivedDataSource):
 
         self.notify_new_data_received(start_uid, 1, received_data, metadata)
 
-    def on_run_ended(self, start_uid):
-        self.notify_data_stream_closed(start_uid)
+    def on_run_ended(self, start_uid, timestamp):
+        self.notify_data_stream_closed(start_uid, timestamp)
 
     def __call__(self, name, doc):
         return self._parser(name, doc)
