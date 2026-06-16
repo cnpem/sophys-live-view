@@ -31,6 +31,7 @@ class KafkaDataSource(BlueskyDataSource):
             bootstrap_servers=self._bootstrap_servers,
             value_deserializer=msgpack.unpackb,
             consumer_timeout_ms=250,
+            receive_message_max_bytes=100000000,
         )
 
         all_partitions = [
