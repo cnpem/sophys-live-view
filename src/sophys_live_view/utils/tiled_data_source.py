@@ -12,10 +12,16 @@ from .bluesky_data_source import BlueskyDataSource
 class TiledDataSource(BlueskyDataSource):
     queue_event_read = Signal(str, BlueskyEventStream, str)  # uid, stream, signal name
 
-    def __init__(self, tiled_url: str, hour_offset: float | None = None):
+    def __init__(
+        self,
+        tiled_url: str,
+        api_key: str | None = None,
+        hour_offset: float | None = None,
+    ):
         super().__init__()
 
         self._url = tiled_url
+        self._api_key = api_key
         self._hour_offset = hour_offset
 
         self._run_cache = dict()
@@ -74,7 +80,7 @@ class TiledDataSource(BlueskyDataSource):
         self.queue_event_read.connect(self._read_signal_data, Qt.QueuedConnection)
         self.data_requested.connect(self.handle_data_request)
 
-        self._client = from_uri(self._url)
+        self._client = from_uri(self._url, api_key=self._api_key)
 
         if self._hour_offset is not None:
             time_offset = time() - self._hour_offset * 3600

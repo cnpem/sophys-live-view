@@ -29,6 +29,12 @@ def entrypoint():
         help="Tiled URL to connect to (default: None - Do not connect to Tiled).",
     )
     parser.add_argument(
+        "--tiled-api-key",
+        default=None,
+        type=str,
+        help="Tiled API key to authenticate with (default: None - Do not set an API key).",
+    )
+    parser.add_argument(
         "--hour-offset",
         default=None,
         type=float,
@@ -68,7 +74,9 @@ def entrypoint():
         if args.tiled_url:
             from .utils.tiled_data_source import TiledDataSource
 
-            data_source = TiledDataSource(args.tiled_url, hour_offset=args.hour_offset)
+            data_source = TiledDataSource(
+                args.tiled_url, args.tiled_api_key, hour_offset=args.hour_offset
+            )
         else:
             from .utils.kafka_data_source import KafkaDataSource
 
