@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from importlib.metadata import version
 import logging
 import typing
 
@@ -26,13 +27,23 @@ class KafkaDataSource(BlueskyDataSource):
         self._closed = False
 
     def run(self):
-        consumer = KafkaConsumer(
-            self._topic_name,
-            bootstrap_servers=self._bootstrap_servers,
-            value_deserializer=msgpack.unpackb,
-            consumer_timeout_ms=250,
-            receive_message_max_bytes=100000000,
-        )
+        major_kafka_python_ver = int(version("kafka-python").strip().split(".")[0])
+        if major_kafka_python_ver >= 3:
+            consumer = KafkaConsumer(
+                self._topic_name,
+                bootstrap_servers=self._bootstrap_servers,
+                value_deserializer=msgpack.unpackb,
+                consumer_timeout_ms=250,
+                receive_message_max_bytes=100000000,
+            )
+        else:
+            # NOTE: Remove needed argument in kafka-python 3.x, but non-existent on older versions
+            consumer = KafkaConsumer(
+                self._topic_name,
+                bootstrap_servers=self._bootstrap_servers,
+                value_deserializer=msgpack.unpackb,
+                consumer_timeout_ms=250,
+            )
 
         all_partitions = [
             TopicPartition(self._topic_name, p)
