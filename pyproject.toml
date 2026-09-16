@@ -13,7 +13,7 @@ dependencies = [
     "silx",
     "event_model",
     "qtawesome",
-    "kafka-python",
+    "kafka-python!=2.3.2",
     "msgpack",
     "msgpack-numpy",
     "python-dateutil",
