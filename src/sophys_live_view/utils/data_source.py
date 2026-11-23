@@ -16,8 +16,8 @@ class DataSource(QObject):
     """
 
     new_data_stream = Signal(
-        str, str, set, dict, set, list, dict
-    )  # uid, display_name, fields, fields name map, detectors, motors, metadata
+        str, str, str, set, dict, set, list, dict
+    )  # uid, stream name, display_name, fields, fields name map, detectors, motors, metadata
     new_data_received = Signal(
         str, int, dict, dict
     )  # uid, number of events, {signal : data}, {signal : metadata}
@@ -31,6 +31,7 @@ class DataSource(QObject):
     def notify_new_data_stream(
         self,
         uid: str,
+        stream_name: str,
         display_name: str,
         fields: set[str],
         fields_name_map: dict[str, str],
@@ -39,7 +40,14 @@ class DataSource(QObject):
         metadata: dict,
     ) -> None:
         self.new_data_stream.emit(
-            uid, display_name, fields, fields_name_map, detectors, motors, metadata
+            uid,
+            stream_name,
+            display_name,
+            fields,
+            fields_name_map,
+            detectors,
+            motors,
+            metadata,
         )
 
     def notify_new_data_received(

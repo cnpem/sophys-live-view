@@ -1,5 +1,7 @@
 from abc import abstractmethod
 from collections import defaultdict
+import copy
+import functools
 import typing
 
 from event_model import DocumentRouter, Event, EventDescriptor, RunStart, RunStop
@@ -85,12 +87,18 @@ class DocumentParser(DocumentRouter):
         pass
 
 
+@functools.lru_cache(maxsize=64)
+def sub_uid_from_documents(start_uid: str, descriptor_uid: str):
+    return start_uid + "_" + descriptor_uid
+
+
 class BlueskyDataSource(BatchReceivedDataSource):
     def __init__(self):
         super().__init__()
 
         self._run_metadata = dict()
         self._descriptors = dict()
+        self._stream_uids_for_start_uid = defaultdict(set)
 
         self._parser = DocumentParser()
         self._parser.on_new_run_started = self.on_new_run_started
@@ -116,33 +124,37 @@ class BlueskyDataSource(BatchReceivedDataSource):
         fields_name_map: dict[str, str],
         extra_metadata: dict[str, dict[str, typing.Any]],
     ):
-        # TODO: Support other streams
-        if descriptor_name != "primary":
+        # NOTE: This is the case where we receive an incomplete stream (descriptors with no start document associated)
+        if start_uid not in self._run_metadata:
             return
+
+        sub_uid = sub_uid_from_documents(start_uid, descriptor_uid)
 
         fields.add("time")
         fields.add("seq_num")
-        self._run_metadata[start_uid]["fields"] = fields
+
+        self._run_metadata[sub_uid] = copy.deepcopy(self._run_metadata[start_uid])
+        self._run_metadata[sub_uid]["fields"] = fields
 
         fields_name_map["time"] = "time (s)"
 
-        detectors = set(self._run_metadata[start_uid]["metadata"].get("detectors", []))
+        detectors = set(self._run_metadata[sub_uid]["metadata"].get("detectors", []))
 
         motors = ["time"]
-        if "hints" in self._run_metadata[start_uid]["metadata"]:
-            dimensions = self._run_metadata[start_uid]["metadata"]["hints"][
-                "dimensions"
-            ]
+        if "hints" in self._run_metadata[sub_uid]["metadata"]:
+            dimensions = self._run_metadata[sub_uid]["metadata"]["hints"]["dimensions"]
             motors = list(v for x in dimensions for v in x[0])
 
-        metadata = self._run_metadata[start_uid]["metadata"]
+        metadata = self._run_metadata[sub_uid]["metadata"]
         metadata["configuration"] = extra_metadata
 
         self._descriptors[descriptor_uid] = start_uid
+        self._stream_uids_for_start_uid[start_uid].add(sub_uid)
 
         self.notify_new_data_stream(
-            start_uid,
-            self._run_metadata[start_uid]["name"],
+            sub_uid,
+            descriptor_name,
+            self._run_metadata[sub_uid]["name"],
             fields,
             fields_name_map,
             detectors,
@@ -157,12 +169,14 @@ class BlueskyDataSource(BatchReceivedDataSource):
         if start_uid is None:
             return
 
+        sub_uid = sub_uid_from_documents(start_uid, descriptor_uid)
+
         received_data = {key: [val] for key, val in values.items()}
 
-        start_metadata = self._run_metadata[start_uid]["metadata"]
+        start_metadata = self._run_metadata[sub_uid]["metadata"]
         metadata = defaultdict(lambda: dict())
 
-        if self._run_metadata[start_uid]["grid_scan"]:
+        if self._run_metadata[sub_uid]["grid_scan"]:
             shape = start_metadata.get("shape", (0, 0))
             snaking = start_metadata.get(
                 "snaking", [start_metadata.get("snake_axes", False)] * 2
@@ -180,10 +194,11 @@ class BlueskyDataSource(BatchReceivedDataSource):
         received_data["time"] = [timestamp - start_metadata.get("time", 0)]
         received_data["seq_num"] = [seq_num]
 
-        self.notify_new_data_received(start_uid, 1, received_data, metadata)
+        self.notify_new_data_received(sub_uid, 1, received_data, metadata)
 
     def on_run_ended(self, start_uid: str, timestamp: float):
-        self.notify_data_stream_closed(start_uid, timestamp)
+        for sub_uid in self._stream_uids_for_start_uid[start_uid]:
+            self.notify_data_stream_closed(sub_uid, timestamp)
 
     def __call__(self, name, doc):
         return self._parser(name, doc)

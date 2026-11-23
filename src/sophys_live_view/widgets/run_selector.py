@@ -92,6 +92,7 @@ class RunSelector(IRunSelector):
         self,
         uid: str,
         subuid: str,
+        stream_name: str,
         display_name: str,
         signals: set[str],
         signals_name_map: dict[str, str],
@@ -99,7 +100,9 @@ class RunSelector(IRunSelector):
         motors: list[str],
         metadata: dict,
     ):
-        self._run_list_model.add_stream(uid, subuid, display_name, metadata)
+        self._run_list_model.add_stream(
+            uid, subuid, stream_name, display_name, metadata
+        )
 
         if self._finished_loading and self._go_to_last_automatically:
             self.select_item.emit(
@@ -260,6 +263,7 @@ class RunListModel(QAbstractItemModel):
         self,
         uid: str,
         subuid: str,
+        stream_name: str,
         display_name: str,
         metadata: dict[str, Any],
     ):

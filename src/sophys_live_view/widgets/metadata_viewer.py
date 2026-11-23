@@ -97,6 +97,7 @@ class MetadataViewer(IMetadataViewer):
         self,
         uid: str,
         subuid: str,
+        stream_name: str,
         display_name: str,
         signals: set[str],
         signals_name_map: dict[str, str],

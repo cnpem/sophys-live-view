@@ -19,8 +19,8 @@ class DataSourceManager(QThread):
     # The idea is that we keep track of both separately so that we can do stuff like filtering
     # on the UI based on DataSource, for example.
     new_data_stream = Signal(
-        str, str, str, set, dict, set, list, dict
-    )  # uid, subuid, display_name, fields, fields name map, detectors, motors, metadata
+        str, str, str, str, set, dict, set, list, dict
+    )  # uid, subuid, stream name, display_name, fields, fields name map, detectors, motors, metadata
     new_data_received = Signal(
         str, str, int, dict, dict
     )  # uid, subuid, number of events, {signal : data}, {signal : metadata}
