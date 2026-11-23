@@ -8,7 +8,7 @@ from qtpy.QtCore import (
     QAbstractItemModel,
     QModelIndex,
     QPersistentModelIndex,
-    QRect,
+    QRectF,
     QSize,
     Qt,
     Signal,
@@ -21,6 +21,7 @@ from qtpy.QtWidgets import (
     QListView,
     QProgressBar,
     QPushButton,
+    QStyle,
     QStyledItemDelegate,
     QStyleOptionViewItem,
     QVBoxLayout,
@@ -169,6 +170,8 @@ MaybeModelIndex: TypeAlias = ModelIndex | None
 class RunItem:
     uid: str
     subuid: str
+
+    stream_name: str
     display_name: str
 
     bookmarked: bool = False
@@ -179,39 +182,44 @@ class RunItem:
 
     class RunItemDelegate(QStyledItemDelegate):
         def sizeHint(self, option: QStyleOptionViewItem, index: ModelIndex) -> QSize:  # noqa: N802
-            return QSize(option.rect.width(), option.fontMetrics.height() * 2)
+            return QSize(option.rect.width(), round(3 * option.fontMetrics.height()))
 
         def paint(
             self, painter: QPainter, option: QStyleOptionViewItem, index: ModelIndex
         ):
             self.initStyleOption(option, index)
+            option.state = QStyle.State(option.state & ~QStyle.State_HasFocus)
 
-            first_line_rect = QRect(option.rect)
+            # First line: decoration and run title
+            first_line_rect = QRectF(option.rect)
             first_line_rect.setHeight(option.fontMetrics.height())
-            second_line_rect = QRect(option.rect)
-            second_line_rect.setHeight(option.fontMetrics.height())
-            second_line_rect.translate(0, first_line_rect.height())
 
             option.decorationAlignment = (
                 Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
             )
             option.decorationSize = QSize(
-                option.decorationSize.width(), first_line_rect.height()
+                option.decorationSize.width(), round(first_line_rect.height())
             )
             option.displayAlignment = (
                 Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
             )
             super().paint(painter, option, index)
 
+            # Second line: Start / end times
+            second_line_rect = QRectF(first_line_rect)
+            second_line_rect.setHeight(option.fontMetrics.height())
+            second_line_rect.translate(0, first_line_rect.height())
+
             second_line_text_opts = QTextOption(Qt.AlignmentFlag.AlignVCenter)
             second_line_text_opts.setWrapMode(QTextOption.WrapMode.NoWrap)
+
+            second_line_font = QFont(option.font)
+            second_line_font.setPixelSize(10)
 
             start_time = strftime(
                 "%d/%m/%Y %H:%M:%S ",
                 localtime(int(index.data(role=RunListModelRoles.START_TIME_ROLE))),
             )
-            start_time_font = QFont(option.font)
-            start_time_font.setPixelSize(10)
 
             try:
                 end_time = strftime(
@@ -220,16 +228,35 @@ class RunItem:
                 )
             except TypeError:
                 end_time = "-"
-            end_time_font = QFont(option.font)
-            end_time_font.setPixelSize(10)
 
             painter.save()
-            painter.setFont(start_time_font)
+            painter.setFont(second_line_font)
             painter.setClipRect(second_line_rect)
             painter.drawText(
                 second_line_rect,
-                f" Start time: {start_time} | End time: {end_time}",
+                8 * " " + f"🗓️ {start_time} - {end_time}",
                 second_line_text_opts,
+            )
+            painter.restore()
+
+            # Third line: Stream name
+            third_line_rect = QRectF(second_line_rect)
+            third_line_rect.setHeight(option.fontMetrics.height())
+            third_line_rect.translate(0, second_line_rect.height())
+
+            third_line_text_opts = QTextOption(Qt.AlignmentFlag.AlignVCenter)
+            third_line_text_opts.setWrapMode(QTextOption.WrapMode.NoWrap)
+
+            third_line_font = QFont(option.font)
+            third_line_font.setPixelSize(10)
+
+            painter.save()
+            painter.setFont(third_line_font)
+            painter.setClipRect(third_line_rect)
+            painter.drawText(
+                third_line_rect,
+                8 * " " + f"📖 {index.data(role=RunListModelRoles.STREAM_NAME_ROLE)}",
+                third_line_text_opts,
             )
             painter.restore()
 
@@ -241,6 +268,8 @@ class RunItem:
 class RunListModelRoles(IntEnum):
     UID_ROLE = Qt.ItemDataRole.UserRole
     SUBUID_ROLE = auto()
+
+    STREAM_NAME_ROLE = auto()
 
     BOOKMARK_ROLE = auto()
     LOADING_ROLE = auto()
@@ -273,7 +302,12 @@ class RunListModel(QAbstractItemModel):
         )
         self._runs.append(
             RunItem(
-                uid, subuid, display_name, loading=True, start_time=metadata.get("time")
+                uid,
+                subuid,
+                stream_name,
+                display_name,
+                loading=True,
+                start_time=metadata.get("time"),
             )
         )
         self.rowsInserted.emit(QModelIndex(), old_number_of_items, old_number_of_items)
@@ -288,8 +322,6 @@ class RunListModel(QAbstractItemModel):
 
                 self.setData(index, timestamp, role=RunListModelRoles.END_TIME_ROLE)
                 self.dataChanged.emit(index, index)
-
-                break
 
     def rowCount(self, parent: MaybeModelIndex = None):  # noqa: N802
         return len(self._runs)
@@ -330,6 +362,8 @@ class RunListModel(QAbstractItemModel):
                 return item.uid
             case RunListModelRoles.SUBUID_ROLE:
                 return item.subuid
+            case RunListModelRoles.STREAM_NAME_ROLE:
+                return item.stream_name
             case RunListModelRoles.BOOKMARK_ROLE:
                 return item.bookmarked
             case RunListModelRoles.LOADING_ROLE:
